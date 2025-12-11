@@ -11,5 +11,6 @@ Route::get('/user', function (Request $request) {
 Route::prefix('auth')->group(function(){
 
     Route::post('send-otp', [AuthController::class, 'sendOtp']);
+    Route::post('verify-otp', [AuthController::class, 'verifyOtp']);
     // Route::post('logout', [AuthController::class, 'logout']);
 });

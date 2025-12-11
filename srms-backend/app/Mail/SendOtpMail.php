@@ -16,9 +16,9 @@ class SendOtpMail extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct()
+    public function __construct(public string $otp)
     {
-        //
+     
     }
 
     /**
@@ -27,7 +27,7 @@ class SendOtpMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Send Otp Mail',
+            subject: 'SRMS - OTP Verification',
         );
     }
 
@@ -38,6 +38,9 @@ class SendOtpMail extends Mailable
     {
         return new Content(
             markdown: 'mail.send-otp-mail',
+            with: [
+                'otp' => $this->otp ?? null,
+            ],
         );
     }
 

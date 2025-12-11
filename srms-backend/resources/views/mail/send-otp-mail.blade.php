@@ -1,12 +1,20 @@
 <x-mail::message>
-# Introduction
+# SRMS – Login OTP
 
-The body of your message.
+Hi,
 
-<x-mail::button :url="''">
-Button Text
-</x-mail::button>
+Your one-time password (OTP) for logging into **SRMS** is:
+
+@component('mail::panel')
+**{{ $otp }}**
+@endcomponent
+
+This OTP is valid for a short time and can be used only once.
+
+- Do **not** share this code with anyone.
+- If you did not request this OTP, you can safely ignore this email.
 
 Thanks,<br>
-{{ config('app.name') }}
+{{ config('app.name') }}<br>
+{{ config('app.url') }}
 </x-mail::message>

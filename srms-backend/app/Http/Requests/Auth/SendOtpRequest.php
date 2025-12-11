@@ -24,14 +24,18 @@ class SendOtpRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => 'required|email',
-            Rule::exists('users', 'email')->where('is_active', true),
+            'email' => [
+                'required',
+                'email',
+                Rule::exists('users', 'email')->where('is_active', true),
+            ],
         ];
     }
 
     public function messages(): array
     {
         return [
+            'email.exists' => 'The email is not registered.',
             'email.required' => 'The email field is required.',
             'email.email' => 'The email must be a valid email address.',
         ];
