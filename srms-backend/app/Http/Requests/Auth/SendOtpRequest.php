@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Http\Requests\Auth;
+
+use App\Models\User;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class SendOtpRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'email' => [
+                'required',
+                'email',
+                Rule::exists('users', 'email')->where('is_active', true),
+            ],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'email.exists' => 'The email is not registered.',
+            'email.required' => 'The email field is required.',
+            'email.email' => 'The email must be a valid email address.',
+        ];
+    }
+}
