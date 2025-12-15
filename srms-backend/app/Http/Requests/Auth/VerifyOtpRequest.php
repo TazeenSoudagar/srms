@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class VerifyOtpRequest extends FormRequest
 {
@@ -22,8 +23,17 @@ class VerifyOtpRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => 'required',
-            'otp' => 'required',
+            'email' => ['required', 'email', 'exists:users,email'],
+            'otp' => ['required', 'string', 'size:6'],
+            'type' => ['nullable', 'string', Rule::in(['login', 'password-reset'])],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'email.exists' => 'The email is not registered.',
+            'otp.size' => 'OTP must be exactly 6 digits.',
         ];
     }
 }

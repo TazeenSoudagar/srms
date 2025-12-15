@@ -29,6 +29,7 @@ class SendOtpRequest extends FormRequest
                 'email',
                 Rule::exists('users', 'email')->where('is_active', true),
             ],
+            'type' => ['required', 'string', Rule::in(['login', 'password-reset'])],
         ];
     }
 
@@ -38,6 +39,7 @@ class SendOtpRequest extends FormRequest
             'email.exists' => 'The email is not registered.',
             'email.required' => 'The email field is required.',
             'email.email' => 'The email must be a valid email address.',
+            'type.required' => 'The type field is required.',
         ];
     }
 }
