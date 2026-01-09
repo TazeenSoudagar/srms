@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Resources;
 
+use App\Services\HashidsService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Vinkla\Hashids\Facades\Hashids;
 
 class AuthResource extends JsonResource
 {
@@ -25,11 +25,13 @@ class AuthResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $hashidsService = app(HashidsService::class);
+
         return [
             'message' => 'OTP verified successfully',
             'token' => $this->token,
             'user' => [
-                'id' => Hashids::encode($this->id),
+                'id' => $hashidsService->encode($this->id),
                 'first_name' => $this->first_name,
                 'last_name' => $this->last_name,
                 'email' => $this->email,
