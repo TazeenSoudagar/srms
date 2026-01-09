@@ -15,3 +15,7 @@ Route::prefix('auth')->group(function () {
     Route::post('verify-otp', [AuthController::class, 'verifyOtp'])
         ->middleware('throttle:10,1'); // 10 requests per minute
 });
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('users', \App\Http\Controllers\Api\UserController::class);
+});

@@ -20,6 +20,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Policies are auto-discovered by Laravel
+        // They follow the naming convention: ModelPolicy for Model
     }
 }
