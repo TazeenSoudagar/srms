@@ -8,9 +8,14 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::prefix('auth')->group(function(){
+Route::prefix('auth')->group(function () {
+    Route::post('send-otp', [AuthController::class, 'sendOtp'])
+        ->middleware('throttle:5,1'); // 5 requests per minute
 
-    Route::post('send-otp', [AuthController::class, 'sendOtp']);
-    Route::post('verify-otp', [AuthController::class, 'verifyOtp']);
-    // Route::post('logout', [AuthController::class, 'logout']);
+    Route::post('verify-otp', [AuthController::class, 'verifyOtp'])
+        ->middleware('throttle:10,1'); // 10 requests per minute
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('users', \App\Http\Controllers\Api\UserController::class);
 });
