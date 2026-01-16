@@ -1,0 +1,287 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\ServiceRequest\AssignServiceRequestRequest;
+use App\Http\Requests\ServiceRequest\StoreServiceRequestRequest;
+use App\Http\Requests\ServiceRequest\UpdateServiceRequestRequest;
+use App\Http\Requests\ServiceRequest\UpdateStatusRequest;
+use App\Http\Resources\ServiceRequest\ServiceRequestCollection;
+use App\Http\Resources\ServiceRequest\ServiceRequestResource;
+use App\Models\ServiceRequest;
+use App\Services\ActivityLogService;
+use App\Services\HashidsService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class ServiceRequestController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request): ServiceRequestCollection
+    {
+        $this->authorize('viewAny', ServiceRequest::class);
+
+        $user = Auth::user();
+        $query = ServiceRequest::with(['service', 'createdBy', 'assignedTo', 'updatedBy'])
+            ->forUser($user)
+            ->where('is_active', true);
+
+        // Apply filters
+        if ($request->has('status')) {
+            $query->byStatus($request->status);
+        }
+
+        if ($request->has('priority')) {
+            $query->byPriority($request->priority);
+        }
+
+        if ($request->has('assigned_to')) {
+            $assignedTo = $request->assigned_to;
+
+            // Decode hashed user ID if provided
+            if (! is_numeric($assignedTo)) {
+                $hashidsService = app(HashidsService::class);
+                $decodedId = $hashidsService->decode((string) $assignedTo);
+                if ($decodedId !== null) {
+                    $assignedTo = $decodedId;
+                }
+            }
+
+            $query->assignedTo((int) $assignedTo);
+        }
+
+        if ($request->has('created_by')) {
+            $createdBy = $request->created_by;
+
+            // Decode hashed user ID if provided
+            if (! is_numeric($createdBy)) {
+                $hashidsService = app(HashidsService::class);
+                $decodedId = $hashidsService->decode((string) $createdBy);
+                if ($decodedId !== null) {
+                    $createdBy = $decodedId;
+                }
+            }
+
+            $query->createdBy((int) $createdBy);
+        }
+
+        if ($request->has('service_id')) {
+            $serviceId = $request->service_id;
+
+            // Decode hashed service_id if provided
+            if (! is_numeric($serviceId)) {
+                $hashidsService = app(HashidsService::class);
+                $decodedId = $hashidsService->decode((string) $serviceId);
+                if ($decodedId !== null) {
+                    $serviceId = $decodedId;
+                }
+            }
+
+            $query->where('service_id', (int) $serviceId);
+        }
+
+        if ($request->has('date_from') || $request->has('date_to')) {
+            $query->byDateRange($request->date_from, $request->date_to);
+        }
+
+        if ($request->has('search')) {
+            $query->search($request->search);
+        }
+
+        // Pagination
+        $perPage = min((int) ($request->per_page ?? 15), 100); // Max 100 per page
+        $serviceRequests = $query->latest()->paginate($perPage);
+
+        return new ServiceRequestCollection($serviceRequests);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(StoreServiceRequestRequest $request): JsonResponse
+    {
+        $this->authorize('create', ServiceRequest::class);
+
+        $user = Auth::user();
+        $data = $request->validated();
+        $data['request_number'] = ServiceRequest::generateRequestNumber();
+        $data['created_by'] = $user->id;
+        $data['status'] = 'open';
+        $data['is_active'] = true;
+
+        $serviceRequest = ServiceRequest::create($data);
+        $serviceRequest->load(['service', 'createdBy', 'assignedTo']);
+
+        // Log activity
+        ActivityLogService::logCreated($user, $serviceRequest, [
+            'title' => $serviceRequest->title,
+            'service' => $serviceRequest->service->name ?? null,
+        ]);
+
+        return (new ServiceRequestResource($serviceRequest))
+            ->response()
+            ->setStatusCode(201);
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(ServiceRequest $serviceRequest): ServiceRequestResource
+    {
+        $this->authorize('view', $serviceRequest);
+
+        $serviceRequest->load([
+            'service',
+            'createdBy',
+            'assignedTo',
+            'updatedBy',
+            'comments.user',
+            'media',
+        ]);
+
+        return new ServiceRequestResource($serviceRequest);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(UpdateServiceRequestRequest $request, ServiceRequest $serviceRequest): ServiceRequestResource
+    {
+        $this->authorize('update', $serviceRequest);
+
+        $user = Auth::user();
+        $oldData = $serviceRequest->toArray();
+        $data = $request->validated();
+
+        // Calculate changed fields before adding system fields
+        $changedFields = array_keys(array_diff_assoc($data, array_intersect_key($oldData, $data)));
+
+        // Add system fields after calculating changed fields
+        $data['updated_by'] = $user->id;
+
+        $serviceRequest->update($data);
+        $serviceRequest->load(['service', 'createdBy', 'assignedTo', 'updatedBy']);
+
+        // Log activity with changed fields (excluding system fields)
+        ActivityLogService::logUpdated($user, $serviceRequest, [
+            'changed_fields' => $changedFields,
+        ]);
+
+        return new ServiceRequestResource($serviceRequest);
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(ServiceRequest $serviceRequest): JsonResponse
+    {
+        $this->authorize('delete', $serviceRequest);
+
+        $user = Auth::user();
+
+        // Log activity before deletion
+        ActivityLogService::logDeleted($user, $serviceRequest, [
+            'request_number' => $serviceRequest->request_number,
+        ]);
+
+        $serviceRequest->delete();
+
+        return response()->json([
+            'message' => 'Service request deleted successfully',
+        ], 200);
+    }
+
+    /**
+     * Assign a service request to a support engineer.
+     */
+    public function assign(AssignServiceRequestRequest $request, ServiceRequest $serviceRequest): ServiceRequestResource
+    {
+        $this->authorize('assign', $serviceRequest);
+
+        $user = Auth::user();
+        $assignedTo = \App\Models\User::findOrFail($request->assigned_to);
+        $oldAssignedTo = $serviceRequest->assignedTo;
+
+        $serviceRequest->update([
+            'assigned_to' => $request->assigned_to,
+            'updated_by' => $user->id,
+        ]);
+
+        $serviceRequest->load(['service', 'createdBy', 'assignedTo', 'updatedBy']);
+
+        // Log activity
+        ActivityLogService::logAssigned($user, $serviceRequest, $assignedTo, [
+            'previous_assigned_to' => $oldAssignedTo?->id,
+            'previous_assigned_to_name' => $oldAssignedTo ? $oldAssignedTo->first_name . ' ' . $oldAssignedTo->last_name : null,
+        ]);
+
+        return new ServiceRequestResource($serviceRequest);
+    }
+
+    /**
+     * Update the status of a service request.
+     */
+    public function updateStatus(UpdateStatusRequest $request, ServiceRequest $serviceRequest): ServiceRequestResource
+    {
+        $this->authorize('update', $serviceRequest);
+
+        $user = Auth::user();
+        $oldStatus = $serviceRequest->status?->value ?? $serviceRequest->status;
+        $newStatus = $request->status;
+
+        $updateData = [
+            'status' => $newStatus,
+            'updated_by' => $user->id,
+        ];
+
+        // If status is closed, set closed_at timestamp
+        if ($newStatus === 'closed' && ! $serviceRequest->closed_at) {
+            $updateData['closed_at'] = now();
+        }
+
+        // If reopening a closed request, clear closed_at
+        if ($newStatus !== 'closed' && $serviceRequest->closed_at) {
+            $updateData['closed_at'] = null;
+        }
+
+        $serviceRequest->update($updateData);
+        $serviceRequest->load(['service', 'createdBy', 'assignedTo', 'updatedBy']);
+
+        // Log activity
+        ActivityLogService::logStatusChanged($user, $serviceRequest, $oldStatus, $newStatus);
+
+        return new ServiceRequestResource($serviceRequest);
+    }
+
+    /**
+     * Close a service request.
+     */
+    public function close(ServiceRequest $serviceRequest): ServiceRequestResource
+    {
+        $this->authorize('close', $serviceRequest);
+
+        $user = Auth::user();
+        $oldStatus = $serviceRequest->status?->value ?? $serviceRequest->status;
+
+        $serviceRequest->update([
+            'status' => 'closed',
+            'closed_at' => now(),
+            'updated_by' => $user->id,
+        ]);
+
+        $serviceRequest->load(['service', 'createdBy', 'assignedTo', 'updatedBy']);
+
+        // Log activity
+        ActivityLogService::logClosed($user, $serviceRequest, [
+            'previous_status' => $oldStatus,
+        ]);
+
+        return new ServiceRequestResource($serviceRequest);
+    }
+}
