@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
+use App\Filament\Resources\Users\Pages\CreateUser;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -29,7 +30,9 @@ class UserForm
                 DateTimePicker::make('email_verified_at'),
                 TextInput::make('password')
                     ->password()
-                    ->required(),
+                    ->required(fn($livewire) => $livewire instanceof CreateUser)
+                    ->dehydrated(fn($state) => filled($state))
+                    ->helperText('Leave blank to keep current password when editing.'),
                 Toggle::make('is_active')
                     ->required(),
             ]);

@@ -20,10 +20,10 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('status')->default('open');
             $table->string('priority')->default('low');
-            $table->foreignId('assigned_to')->constrained('users')->nullable();
+            $table->foreignId('assigned_to')->nullable()->constrained('users');
             $table->date('due_date')->nullable();
             $table->dateTime('closed_at')->nullable();
-            $table->foreignId('updated_by')->constrained('users')->nullable();
+            $table->foreignId('updated_by')->nullable()->constrained('users');
             $table->boolean('is_active')->default(true);
             $table->index('service_id');
             $table->index('created_by');

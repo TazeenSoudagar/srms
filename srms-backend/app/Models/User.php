@@ -57,4 +57,14 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class);
     }
+
+    /**
+     * Get the user's full name.
+     * This is used by Filament and other parts of the application.
+     */
+    public function getNameAttribute(): string
+    {
+        $parts = array_filter([$this->first_name, $this->last_name]);
+        return implode(' ', $parts) ?: $this->email;
+    }
 }

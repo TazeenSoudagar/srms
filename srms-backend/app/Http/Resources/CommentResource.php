@@ -8,7 +8,7 @@ use App\Services\HashidsService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class UserResource extends JsonResource
+class CommentResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -21,14 +21,11 @@ class UserResource extends JsonResource
 
         return [
             'id' => $hashidsService->encode($this->id),
-            'first_name' => $this->first_name,
-            'last_name' => $this->last_name,
-            'email' => $this->email,
-            'phone' => $this->phone,
-            'is_active' => $this->is_active,
-            'role' => [
-                'id' => $hashidsService->encode($this->role->id ?? null),
-                'name' => $this->role->name ?? null,
+            'body' => $this->body,
+            'user' => [
+                'id' => $hashidsService->encode($this->user->id ?? null),
+                'name' => $this->user ? $this->user->first_name.' '.$this->user->last_name : null,
+                'email' => $this->user->email ?? null,
             ],
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
