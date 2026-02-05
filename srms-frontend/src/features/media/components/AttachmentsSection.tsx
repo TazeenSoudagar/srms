@@ -85,9 +85,9 @@ export const AttachmentsSection: React.FC<AttachmentsSectionProps> = ({ serviceR
             accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.txt"
             disabled={isUploading}
           />
-          <Button as="span" variant="outline" size="sm" disabled={isUploading}>
+          <span className="inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
             {isUploading ? <LoadingSpinner size="sm" /> : 'Upload File'}
-          </Button>
+          </span>
         </label>
       </div>
       {error && <ErrorMessage message={error} />}

@@ -1,5 +1,6 @@
 import axios, { type InternalAxiosRequestConfig, type AxiosError } from 'axios'
 import type { AxiosInstance } from 'axios'
+import toast from 'react-hot-toast'
 import { API_BASE_URL, STORAGE_KEYS } from '../utils/constants'
 
 // Create Axios instance
@@ -29,11 +30,19 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status
+    if (status === 401) {
       // Clear auth data and redirect to login
       localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN)
       localStorage.removeItem(STORAGE_KEYS.USER)
+      toast.error('Session expired. Please login again.')
       window.location.href = '/login'
+    } else if (status === 403) {
+      toast.error('You do not have permission to perform this action.')
+    } else if (status === 404) {
+      toast.error('The requested resource was not found.')
+    } else if (status && status >= 500) {
+      toast.error('Server error. Please try again later.')
     }
     return Promise.reject(error)
   }
