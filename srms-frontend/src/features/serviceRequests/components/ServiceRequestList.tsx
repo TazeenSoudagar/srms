@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Layout } from '../../../components/layout/Layout'
 import { Button } from '../../../components/common/Button'
 import { Input } from '../../../components/common/Input'
@@ -10,14 +10,22 @@ import type { ServiceRequest } from '../types'
 import { serviceRequestService } from '../../../services/serviceRequestService'
 
 export const ServiceRequestList: React.FC = () => {
+  const [searchParams] = useSearchParams()
+  const statusFromUrl = searchParams.get('status') || 'all'
+
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<string>(statusFromUrl)
   const [priorityFilter, setPriorityFilter] = useState<string>('all')
   const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+
+  useEffect(() => {
+    const statusFromUrl = searchParams.get('status') || 'all'
+    setStatusFilter(statusFromUrl)
+  }, [searchParams])
 
   useEffect(() => {
     fetchServiceRequests()
@@ -130,8 +138,8 @@ export const ServiceRequestList: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* Table */}
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+            {/* Desktop Table */}
+            <div className="hidden lg:block bg-white rounded-lg shadow overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -200,7 +208,7 @@ export const ServiceRequestList: React.FC = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <Link
                               to={`/service-requests/${request.id}`}
-                              className="text-primary-600 hover:text-primary-900"
+                              className="text-primary-600 hover:text-primary-900 inline-block transition-all duration-300 hover:scale-125 hover:-translate-y-0.5 hover:font-semibold hover:underline hover:decoration-wavy"
                             >
                               View
                             </Link>
@@ -211,6 +219,66 @@ export const ServiceRequestList: React.FC = () => {
                   </tbody>
                 </table>
               </div>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="lg:hidden space-y-4">
+              {serviceRequests.length === 0 ? (
+                <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+                  No service requests found. Create your first request to get started.
+                </div>
+              ) : (
+                serviceRequests.map((request) => (
+                  <div key={request.id} className="bg-white rounded-lg shadow p-4 space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <span className="text-xs font-medium text-gray-500">
+                            {request.request_number}
+                          </span>
+                          <Badge variant={getStatusBadgeVariant(request.status)}>
+                            {request.status.replace('_', ' ')}
+                          </Badge>
+                        </div>
+                        <h3 className="text-base font-medium text-gray-900 truncate">
+                          {request.title}
+                        </h3>
+                      </div>
+                      <Badge variant={getPriorityBadgeVariant(request.priority)}>
+                        {request.priority}
+                      </Badge>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Service:</span>
+                        <span className="text-gray-900">{request.service.name}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Assigned To:</span>
+                        <span className="text-gray-900">
+                          {request.assigned_to
+                            ? `${request.assigned_to.first_name} ${request.assigned_to.last_name}`
+                            : 'Unassigned'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Created:</span>
+                        <span className="text-gray-900">
+                          {new Date(request.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="pt-2 border-t border-gray-200">
+                      <Link
+                        to={`/service-requests/${request.id}`}
+                        className="block w-full text-center px-4 py-2 text-sm font-medium text-primary-600 hover:text-white hover:bg-primary-600 border border-primary-600 rounded-md transition-all duration-300 hover:scale-105 hover:shadow-lg hover:-translate-y-1 active:scale-95"
+                      >
+                        View Details
+                      </Link>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
 
             {/* Pagination */}
