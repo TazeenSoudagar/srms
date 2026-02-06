@@ -1,21 +1,21 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
-import { useAuth } from '../../contexts/AuthContext'
 import { Button } from '../common/Button'
+import { Link } from 'react-router-dom'
+import React from 'react'
+import { useAuth } from '../../contexts/AuthContext'
 
 export const Header: React.FC = () => {
   const { user, logout } = useAuth()
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
-      <div className="container mx-auto px-4 py-4">
+      <div className="pr-4 py-0">
         <div className="flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center">
+          <Link to="/dashboard" className="flex-1 items-center">
             <img
               src="/logo.png"
               alt="SRMS Logo"
-              className="h-8 w-auto"
-              style={{ transform: 'none', lineHeight: '30px' }}
+              className="h-24 w-auto px-0"  
+              style={{ transform: 'none' }}
               onError={(e) => {
                 // Hide broken image and show text fallback
                 const target = e.target as HTMLImageElement

@@ -59,22 +59,60 @@ export const Dashboard: React.FC = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-sm font-medium text-gray-500">Total Requests</h3>
-            <p className="text-3xl font-bold text-gray-900 mt-2">{stats.total}</p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-sm font-medium text-gray-500">Open</h3>
-            <p className="text-3xl font-bold text-blue-600 mt-2">{stats.open}</p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-sm font-medium text-gray-500">In Progress</h3>
-            <p className="text-3xl font-bold text-yellow-600 mt-2">{stats.inProgress}</p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-sm font-medium text-gray-500">Closed</h3>
-            <p className="text-3xl font-bold text-green-600 mt-2">{stats.closed}</p>
-          </div>
+          {/* Total Requests - Rolling counter effect with 3D rotation */}
+          <Link
+            to="/service-requests"
+            className="bg-white p-6 rounded-lg shadow cursor-pointer transition-all duration-500 hover:[animation:totalPulse_1s_ease-in-out_infinite] group relative overflow-hidden block"
+            style={{ transformStyle: 'preserve-3d' }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-200 to-transparent opacity-0 group-hover:opacity-100 group-hover:[animation:shimmer_2s_ease-in-out_infinite]"
+                 style={{ backgroundSize: '200% 100%' }}></div>
+            <h3 className="text-sm font-medium text-gray-500 relative z-10">Total Requests</h3>
+            <p className="text-3xl font-bold text-gray-900 mt-2 relative z-10 group-hover:[animation:countUp_0.5s_ease-out]">{stats.total}</p>
+          </Link>
+
+          {/* Open - Waiting/Pending animation with pulse rings */}
+          <Link
+            to="/service-requests?status=open"
+            className="bg-white p-6 rounded-lg shadow cursor-pointer transition-all duration-300 hover:[animation:waiting_2s_ease-in-out_infinite] group relative overflow-hidden block"
+          >
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 border-2 border-blue-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:[animation:pulse-ring_2s_ease-out_infinite]"></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 border-2 border-blue-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:[animation:pulse-ring_2s_ease-out_infinite_0.5s]"></div>
+            <h3 className="text-sm font-medium text-gray-500 relative z-10">Open</h3>
+            <p className="text-3xl font-bold text-blue-600 mt-2 relative z-10">
+              {stats.open}
+              <span className="ml-2 text-sm font-normal text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">waiting...</span>
+            </p>
+          </Link>
+
+          {/* In Progress - Horizontal sliding with progress bar */}
+          <Link
+            to="/service-requests?status=in_progress"
+            className="bg-white p-6 rounded-lg shadow cursor-pointer transition-all duration-300 hover:[animation:progress_2s_ease-in-out_infinite] group relative overflow-hidden block"
+          >
+            <div className="absolute bottom-0 left-0 h-1 bg-yellow-400 opacity-0 group-hover:opacity-100 group-hover:[animation:progressBar_2s_ease-in-out_infinite]"></div>
+            <h3 className="text-sm font-medium text-gray-500 relative z-10">In Progress</h3>
+            <p className="text-3xl font-bold text-yellow-600 mt-2 relative z-10 flex items-center gap-2">
+              {stats.inProgress}
+              <span className="text-xs opacity-0 group-hover:opacity-100 transition-opacity">⚡ working...</span>
+            </p>
+          </Link>
+
+          {/* Closed - Celebration with confetti effect */}
+          <Link
+            to="/service-requests?status=closed"
+            className="bg-white p-6 rounded-lg shadow cursor-pointer transition-all duration-300 hover:[animation:celebrate_0.8s_ease-in-out_infinite] group relative overflow-hidden block"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-green-100 via-transparent to-green-100 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className="absolute top-2 right-2 text-2xl opacity-0 group-hover:opacity-100 group-hover:animate-bounce">🎉</div>
+            <div className="absolute bottom-2 left-2 text-xl opacity-0 group-hover:opacity-100 group-hover:animate-bounce delay-100">✨</div>
+            <div className="absolute top-1/2 right-4 text-xl opacity-0 group-hover:opacity-100 group-hover:animate-bounce delay-200">🎊</div>
+            <h3 className="text-sm font-medium text-gray-500 relative z-10">Closed</h3>
+            <p className="text-3xl font-bold text-green-600 mt-2 relative z-10 flex items-center gap-2">
+              {stats.closed}
+              <span className="text-xs opacity-0 group-hover:opacity-100 transition-opacity">✓ done!</span>
+            </p>
+          </Link>
         </div>
 
         {error && <ErrorMessage message={error} />}
