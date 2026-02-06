@@ -23,9 +23,24 @@ class UserController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
-        $users = User::with('role')
-            ->latest()
-            ->paginate(request('per_page', 15));
+        $query = User::with('role');
+
+        // Search filter
+        if (request()->filled('search')) {
+            $search = request('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        // Role filter
+        if (request()->filled('role_id')) {
+            $query->where('role_id', request('role_id'));
+        }
+
+        $users = $query->latest()->paginate(request('per_page', 15));
 
         return UserResource::collection($users);
     }

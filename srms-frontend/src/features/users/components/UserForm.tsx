@@ -20,14 +20,11 @@ const userSchema = z.object({
   is_active: z.boolean().default(true),
 })
 
-type UserFormData = z.infer<typeof userSchema>
-
 interface UserFormProps {
-  initialData?: Partial<UserFormData>
   isEdit?: boolean
 }
 
-export const UserForm: React.FC<UserFormProps> = ({ initialData, isEdit = false }) => {
+export const UserForm: React.FC<UserFormProps> = ({ isEdit = false }) => {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const [isLoading, setIsLoading] = useState(false)
@@ -44,7 +41,7 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, isEdit = false 
     if (!id) return
     setIsLoadingData(true)
     try {
-      const user = await userService.getUser(id)
+      await userService.getUser(id)
       // Set form values with user data
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load user')
@@ -53,19 +50,19 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, isEdit = false 
     }
   }
 
-  const [roles, setRoles] = useState([
+  const roles = [
     { id: '1', name: 'Admin' },
     { id: '2', name: 'Support Engineer' },
     { id: '3', name: 'Client' },
-  ])
+  ]
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<UserFormData>({
+  } = useForm({
     resolver: zodResolver(userSchema),
-    defaultValues: initialData || {
+    defaultValues: {
       first_name: '',
       last_name: '',
       email: '',
@@ -76,7 +73,7 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, isEdit = false 
     },
   })
 
-  const onSubmit = async (data: UserFormData) => {
+  const onSubmit = async (data: any) => {
     setIsLoading(true)
     setError(null)
 
@@ -87,7 +84,7 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, isEdit = false 
           last_name: data.last_name,
           email: data.email,
           phone: data.phone,
-          role_id: parseInt(data.role_id),
+          role_id: data.role_id,
           is_active: data.is_active,
         }
         if (data.password) {
@@ -100,7 +97,7 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, isEdit = false 
           last_name: data.last_name,
           email: data.email,
           phone: data.phone || '',
-          role_id: parseInt(data.role_id),
+          role_id: data.role_id,
           password: data.password || '',
           is_active: data.is_active,
         })
@@ -130,92 +127,91 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, isEdit = false 
           <form onSubmit={handleSubmit(onSubmit)} className="bg-white p-6 rounded-lg shadow space-y-6">
             {error && <ErrorMessage message={error} />}
 
-          <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="First Name"
+                {...register('first_name')}
+                error={errors.first_name?.message}
+                required
+              />
+              <Input
+                label="Last Name"
+                {...register('last_name')}
+                error={errors.last_name?.message}
+                required
+              />
+            </div>
+
             <Input
-              label="First Name"
-              {...register('first_name')}
-              error={errors.first_name?.message}
+              label="Email"
+              type="email"
+              {...register('email')}
+              error={errors.email?.message}
               required
             />
+
             <Input
-              label="Last Name"
-              {...register('last_name')}
-              error={errors.last_name?.message}
-              required
+              label="Phone"
+              type="tel"
+              {...register('phone')}
+              error={errors.phone?.message}
             />
-          </div>
 
-          <Input
-            label="Email"
-            type="email"
-            {...register('email')}
-            error={errors.email?.message}
-            required
-          />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Role <span className="text-red-500">*</span>
+              </label>
+              <select
+                {...register('role_id')}
+                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${errors.role_id ? 'border-red-500' : 'border-gray-300'
+                  }`}
+              >
+                <option value="">Select a role</option>
+                {roles.map((role) => (
+                  <option key={role.id} value={role.id}>
+                    {role.name}
+                  </option>
+                ))}
+              </select>
+              {errors.role_id && (
+                <p className="mt-1 text-sm text-red-600">{errors.role_id.message}</p>
+              )}
+            </div>
 
-          <Input
-            label="Phone"
-            type="tel"
-            {...register('phone')}
-            error={errors.phone?.message}
-          />
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Role <span className="text-red-500">*</span>
-            </label>
-            <select
-              {...register('role_id')}
-              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
-                errors.role_id ? 'border-red-500' : 'border-gray-300'
-              }`}
-            >
-              <option value="">Select a role</option>
-              {roles.map((role) => (
-                <option key={role.id} value={role.id}>
-                  {role.name}
-                </option>
-              ))}
-            </select>
-            {errors.role_id && (
-              <p className="mt-1 text-sm text-red-600">{errors.role_id.message}</p>
-            )}
-          </div>
-
-          <Input
-            label={isEdit ? 'Password (leave blank to keep current)' : 'Password'}
-            type="password"
-            {...register('password')}
-            error={errors.password?.message}
-            required={!isEdit}
-          />
-
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="is_active"
-              {...register('is_active')}
-              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+            <Input
+              label={isEdit ? 'Password (leave blank to keep current)' : 'Password'}
+              type="password"
+              {...register('password')}
+              error={errors.password?.message}
+              required={!isEdit}
             />
-            <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">
-              Active
-            </label>
-          </div>
 
-          <div className="flex space-x-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate('/users')}
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? <LoadingSpinner size="sm" /> : isEdit ? 'Update' : 'Create'}
-            </Button>
-          </div>
-        </form>
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="is_active"
+                {...register('is_active')}
+                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+              />
+              <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">
+                Active
+              </label>
+            </div>
+
+            <div className="flex space-x-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate('/users')}
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? <LoadingSpinner size="sm" /> : isEdit ? 'Update' : 'Create'}
+              </Button>
+            </div>
+          </form>
         )}
       </div>
     </Layout>

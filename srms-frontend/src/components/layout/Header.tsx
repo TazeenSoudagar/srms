@@ -15,6 +15,7 @@ export const Header: React.FC = () => {
               src="/logo.png"
               alt="SRMS Logo"
               className="h-8 w-auto"
+              style={{ transform: 'none', lineHeight: '30px' }}
               onError={(e) => {
                 // Hide broken image and show text fallback
                 const target = e.target as HTMLImageElement

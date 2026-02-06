@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { Layout } from '../../../components/layout/Layout'
 import { Button } from '../../../components/common/Button'
 import { Badge } from '../../../components/common/Badge'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
-import { ErrorMessage } from '../../../components/ui/ErrorMessage'
 import type { ServiceRequest } from '../types'
 import { serviceRequestService } from '../../../services/serviceRequestService'
 import { CommentsSection } from '../../comments/components/CommentsSection'
@@ -12,9 +11,7 @@ import { AttachmentsSection } from '../../media/components/AttachmentsSection'
 
 export const ServiceRequestDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [serviceRequest, setServiceRequest] = useState<ServiceRequest | null>(null)
 
   useEffect(() => {
@@ -26,12 +23,11 @@ export const ServiceRequestDetail: React.FC = () => {
   const fetchServiceRequest = async () => {
     if (!id) return
     setIsLoading(true)
-    setError(null)
     try {
       const data = await serviceRequestService.getServiceRequest(id)
       setServiceRequest(data)
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load service request')
+      console.error('Failed to load service request:', err)
     } finally {
       setIsLoading(false)
     }

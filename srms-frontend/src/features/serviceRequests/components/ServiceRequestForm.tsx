@@ -16,9 +16,7 @@ const serviceRequestSchema = z.object({
   service_id: z.string().min(1, 'Please select a service'),
   title: z.string().min(1, 'Title is required').max(255, 'Title cannot exceed 255 characters'),
   description: z.string().max(5000, 'Description cannot exceed 5000 characters').optional(),
-  priority: z.enum(['low', 'medium', 'high'], {
-    required_error: 'Priority is required',
-  }),
+  priority: z.enum(['low', 'medium', 'high'], { message: 'Priority is required' }),
   due_date: z.string().optional(),
 })
 
@@ -61,7 +59,7 @@ export const ServiceRequestForm: React.FC<ServiceRequestFormProps> = ({
     if (!id) return
     setIsLoadingData(true)
     try {
-      const data = await serviceRequestService.getServiceRequest(id)
+      await serviceRequestService.getServiceRequest(id)
       // Set form values
       // Note: service_id needs to be the hashed ID from the API
     } catch (err: any) {
@@ -137,93 +135,90 @@ export const ServiceRequestForm: React.FC<ServiceRequestFormProps> = ({
             {error && <ErrorMessage message={error} />}
             {success && <SuccessMessage message={success} />}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Service <span className="text-red-500">*</span>
-            </label>
-            <select
-              {...register('service_id')}
-              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
-                errors.service_id ? 'border-red-500' : 'border-gray-300'
-              }`}
-            >
-              <option value="">Select a service</option>
-              {services.map((service) => (
-                <option key={service.id} value={service.id}>
-                  {service.name}
-                </option>
-              ))}
-            </select>
-            {errors.service_id && (
-              <p className="mt-1 text-sm text-red-600">{errors.service_id.message}</p>
-            )}
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Service <span className="text-red-500">*</span>
+              </label>
+              <select
+                {...register('service_id')}
+                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${errors.service_id ? 'border-red-500' : 'border-gray-300'
+                  }`}
+              >
+                <option value="">Select a service</option>
+                {services.map((service) => (
+                  <option key={service.id} value={service.id}>
+                    {service.name}
+                  </option>
+                ))}
+              </select>
+              {errors.service_id && (
+                <p className="mt-1 text-sm text-red-600">{errors.service_id.message}</p>
+              )}
+            </div>
 
-          <Input
-            label="Title"
-            placeholder="Enter service request title"
-            {...register('title')}
-            error={errors.title?.message}
-            required
-          />
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
-            <textarea
-              {...register('description')}
-              rows={6}
-              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
-                errors.description ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="Enter detailed description"
+            <Input
+              label="Title"
+              placeholder="Enter service request title"
+              {...register('title')}
+              error={errors.title?.message}
+              required
             />
-            {errors.description && (
-              <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
-            )}
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Priority <span className="text-red-500">*</span>
-            </label>
-            <select
-              {...register('priority')}
-              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
-                errors.priority ? 'border-red-500' : 'border-gray-300'
-              }`}
-            >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
-            {errors.priority && (
-              <p className="mt-1 text-sm text-red-600">{errors.priority.message}</p>
-            )}
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Description
+              </label>
+              <textarea
+                {...register('description')}
+                rows={6}
+                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${errors.description ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                placeholder="Enter detailed description"
+              />
+              {errors.description && (
+                <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+              )}
+            </div>
 
-          <Input
-            label="Due Date"
-            type="date"
-            {...register('due_date')}
-            error={errors.due_date?.message}
-          />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Priority <span className="text-red-500">*</span>
+              </label>
+              <select
+                {...register('priority')}
+                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${errors.priority ? 'border-red-500' : 'border-gray-300'
+                  }`}
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+              {errors.priority && (
+                <p className="mt-1 text-sm text-red-600">{errors.priority.message}</p>
+              )}
+            </div>
 
-          <div className="flex space-x-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate('/service-requests')}
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? <LoadingSpinner size="sm" /> : isEdit ? 'Update' : 'Create'}
-            </Button>
-          </div>
-        </form>
+            <Input
+              label="Due Date"
+              type="date"
+              {...register('due_date')}
+              error={errors.due_date?.message}
+            />
+
+            <div className="flex space-x-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate('/service-requests')}
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? <LoadingSpinner size="sm" /> : isEdit ? 'Update' : 'Create'}
+              </Button>
+            </div>
+          </form>
         )}
       </div>
     </Layout>

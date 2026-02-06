@@ -23,6 +23,12 @@ import { UserForm } from '../features/users/components/UserForm'
 const UserListPage = () => <UserList />
 const UserFormPage = () => <UserForm />
 const UserEditPage = () => <UserForm isEdit />
+import { ServiceList } from '../features/services/components/ServiceList'
+import { ServiceForm } from '../features/services/components/ServiceForm'
+
+const ServiceListPage = () => <ServiceList />
+const ServiceFormPage = () => <ServiceForm />
+const ServiceEditPage = () => <ServiceForm isEdit />
 
 const AppRoutes: React.FC = () => {
   const { isAuthenticated } = useAuth()
@@ -94,6 +100,30 @@ const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute requiredRole="Admin">
             <UserEditPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/services"
+        element={
+          <ProtectedRoute>
+            <ServiceListPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/services/new"
+        element={
+          <ProtectedRoute requiredRole="Admin">
+            <ServiceFormPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/services/:id/edit"
+        element={
+          <ProtectedRoute requiredRole="Admin">
+            <ServiceEditPage />
           </ProtectedRoute>
         }
       />
