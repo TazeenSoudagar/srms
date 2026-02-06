@@ -29,6 +29,9 @@ import { ServiceForm } from '../features/services/components/ServiceForm'
 const ServiceListPage = () => <ServiceList />
 const ServiceFormPage = () => <ServiceForm />
 const ServiceEditPage = () => <ServiceForm isEdit />
+import { ActivityLogList } from '../features/activityLogs/components/ActivityLogList'
+
+const ActivityLogListPage = () => <ActivityLogList />
 
 const AppRoutes: React.FC = () => {
   const { isAuthenticated } = useAuth()
@@ -124,6 +127,14 @@ const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute requiredRole="Admin">
             <ServiceEditPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/activity-logs"
+        element={
+          <ProtectedRoute requiredRole="Admin">
+            <ActivityLogListPage />
           </ProtectedRoute>
         }
       />

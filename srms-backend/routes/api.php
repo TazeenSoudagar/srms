@@ -39,4 +39,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('service-requests/{serviceRequest}/media', [\App\Http\Controllers\Api\MediaController::class, 'store']);
     Route::get('service-requests/{serviceRequest}/media/{media}', [\App\Http\Controllers\Api\MediaController::class, 'show']);
     Route::delete('service-requests/{serviceRequest}/media/{media}', [\App\Http\Controllers\Api\MediaController::class, 'destroy']);
+
+    // Activity Logs (admin only)
+    Route::get('activity-logs', [\App\Http\Controllers\Api\ActivityLogController::class, 'index']);
+    Route::get('activity-logs/{activityLog}', [\App\Http\Controllers\Api\ActivityLogController::class, 'show']);
 });
