@@ -13,6 +13,7 @@ const navItems: NavItem[] = [
   { label: 'Users', path: '/users', roles: ['Admin'] },
   { label: 'Services', path: '/services' },
   { label: 'Service Requests', path: '/service-requests' },
+  { label: 'Activity Logs', path: '/activity-logs', roles: ['Admin'] },
 ]
 
 export const Sidebar: React.FC = () => {

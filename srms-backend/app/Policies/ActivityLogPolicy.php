@@ -1,0 +1,35 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Policies;
+
+use App\Models\ActivityLog;
+use App\Models\User;
+
+class ActivityLogPolicy
+{
+    /**
+     * Check if user has admin role.
+     */
+    private function isAdmin(User $user): bool
+    {
+        return $user->role && strtolower($user->role->name) === 'admin';
+    }
+
+    /**
+     * Determine whether the user can view any models.
+     */
+    public function viewAny(User $user): bool
+    {
+        return $this->isAdmin($user);
+    }
+
+    /**
+     * Determine whether the user can view the model.
+     */
+    public function view(User $user, ActivityLog $activityLog): bool
+    {
+        return $this->isAdmin($user);
+    }
+}
