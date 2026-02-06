@@ -13,7 +13,10 @@
       "Bash(git push:*)",
       "mcp__github__add_issue_comment",
       "mcp__github__get_me",
-      "mcp__github__create_branch"
+      "mcp__github__create_branch",
+      "Bash(npm run dev:*)",
+      "Bash(git add:*)",
+      "mcp__github__list_issues"
     ]
   }
 }

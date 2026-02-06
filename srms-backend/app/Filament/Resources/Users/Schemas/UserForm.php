@@ -28,11 +28,6 @@ class UserForm
                     ->relationship('role', 'name')
                     ->required(),
                 DateTimePicker::make('email_verified_at'),
-                TextInput::make('password')
-                    ->password()
-                    ->required(fn($livewire) => $livewire instanceof CreateUser)
-                    ->dehydrated(fn($state) => filled($state))
-                    ->helperText('Leave blank to keep current password when editing.'),
                 Toggle::make('is_active')
                     ->required(),
             ]);

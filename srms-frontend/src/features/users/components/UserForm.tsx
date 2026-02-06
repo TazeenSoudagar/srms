@@ -16,7 +16,6 @@ const userSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   phone: z.string().optional(),
   role_id: z.string().min(1, 'Please select a role'),
-  password: z.string().min(8, 'Password must be at least 8 characters').optional(),
   is_active: z.boolean().default(true),
 })
 
@@ -68,7 +67,6 @@ export const UserForm: React.FC<UserFormProps> = ({ isEdit = false }) => {
       email: '',
       phone: '',
       role_id: '',
-      password: '',
       is_active: true,
     },
   })
@@ -79,18 +77,14 @@ export const UserForm: React.FC<UserFormProps> = ({ isEdit = false }) => {
 
     try {
       if (isEdit && id) {
-        const updateData: any = {
+        await userService.updateUser(id, {
           first_name: data.first_name,
           last_name: data.last_name,
           email: data.email,
           phone: data.phone,
           role_id: data.role_id,
           is_active: data.is_active,
-        }
-        if (data.password) {
-          updateData.password = data.password
-        }
-        await userService.updateUser(id, updateData)
+        })
       } else {
         await userService.createUser({
           first_name: data.first_name,
@@ -98,7 +92,6 @@ export const UserForm: React.FC<UserFormProps> = ({ isEdit = false }) => {
           email: data.email,
           phone: data.phone || '',
           role_id: data.role_id,
-          password: data.password || '',
           is_active: data.is_active,
         })
       }
@@ -177,14 +170,6 @@ export const UserForm: React.FC<UserFormProps> = ({ isEdit = false }) => {
                 <p className="mt-1 text-sm text-red-600">{errors.role_id.message}</p>
               )}
             </div>
-
-            <Input
-              label={isEdit ? 'Password (leave blank to keep current)' : 'Password'}
-              type="password"
-              {...register('password')}
-              error={errors.password?.message}
-              required={!isEdit}
-            />
 
             <div className="flex items-center">
               <input

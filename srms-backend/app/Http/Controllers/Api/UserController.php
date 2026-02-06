@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Resources\UserResource;
+use App\Jobs\User\SendWelcomeEmailJob;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -51,8 +52,15 @@ class UserController extends Controller
     public function store(StoreUserRequest $request): JsonResponse
     {
         $data = $request->validated();
-        $data['password'] = Hash::make(Str::random(32));
+
+        // Generate a random 16-character password
+        $plainPassword = Str::random(16);
+        $data['password'] = Hash::make($plainPassword);
+
         $user = User::create($data);
+
+        // Dispatch job to send welcome email with credentials
+        SendWelcomeEmailJob::dispatch($user, $plainPassword);
 
         return (new UserResource($user->load('role')))
             ->response()
