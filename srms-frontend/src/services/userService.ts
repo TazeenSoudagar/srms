@@ -24,6 +24,7 @@ export const userService = {
     page?: number
     per_page?: number
     search?: string
+    role_id?: string
   }): Promise<PaginatedResponse<User>> => {
     const response = await api.get('/users', { params })
     return response.data
