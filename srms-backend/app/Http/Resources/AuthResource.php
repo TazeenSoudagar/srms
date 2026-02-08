@@ -7,6 +7,7 @@ namespace App\Http\Resources;
 use App\Services\HashidsService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class AuthResource extends JsonResource
 {
@@ -37,6 +38,11 @@ class AuthResource extends JsonResource
                 'email' => $this->email,
                 'phone' => $this->phone,
                 'is_active' => $this->is_active,
+                'avatar' => $this->avatar ? [
+                    'id' => $hashidsService->encode($this->avatar->id),
+                    'name' => $this->avatar->name,
+                    'url' => config('app.url') . Storage::url($this->avatar->url),
+                ] : null,
                 'role' => [
                     'id' => $this->role->id ?? null,
                     'name' => $this->role->name ?? null,

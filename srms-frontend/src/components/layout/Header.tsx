@@ -1,10 +1,12 @@
-import { Button } from '../common/Button'
 import { Link } from 'react-router-dom'
-import React from 'react'
+import React, { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import { Avatar } from '../common/Avatar'
+import { ProfileSidebar } from '../../features/profile/components/ProfileSidebar'
 
 export const Header: React.FC = () => {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
@@ -32,21 +34,27 @@ export const Header: React.FC = () => {
           </Link>
           <div className="flex items-center space-x-4">
             {user && (
-              <>
-                <span className="text-sm text-gray-700">
-                  {user.first_name} {user.last_name}
-                </span>
-                <span className="text-xs px-2 py-1 bg-primary-100 text-primary-800 rounded">
-                  {user.role.name}
-                </span>
-                <Button variant="outline" size="sm" onClick={logout}>
-                  Logout
-                </Button>
-              </>
+              <div className="flex items-center space-x-3">
+                <div className="text-right">
+                  <p className="text-sm font-medium text-gray-700">
+                    {user.first_name} {user.last_name}
+                  </p>
+                  <p className="text-xs text-gray-500">{user.role.name}</p>
+                </div>
+                <Avatar
+                  src={user.avatar?.url}
+                  alt={`${user.first_name} ${user.last_name}`}
+                  size="md"
+                  onClick={() => setIsProfileOpen(true)}
+                />
+              </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Profile Sidebar */}
+      <ProfileSidebar isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
     </header>
   )
 }

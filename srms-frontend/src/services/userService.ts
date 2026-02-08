@@ -41,7 +41,6 @@ export const userService = {
     email: string
     phone?: string
     role_id: string
-    password: string
     is_active: boolean
   }): Promise<User> => {
     const response = await api.post('/users', data)

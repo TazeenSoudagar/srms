@@ -17,6 +17,15 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
+    // Profile routes (for authenticated user)
+    Route::prefix('profile')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\ProfileController::class, 'show']);
+        Route::put('/', [\App\Http\Controllers\Api\ProfileController::class, 'update']);
+        Route::post('/change-password', [\App\Http\Controllers\Api\ProfileController::class, 'changePassword']);
+        Route::post('/avatar', [\App\Http\Controllers\Api\ProfileController::class, 'uploadAvatar']);
+        Route::delete('/avatar', [\App\Http\Controllers\Api\ProfileController::class, 'deleteAvatar']);
+    });
+
     Route::apiResource('users', \App\Http\Controllers\Api\UserController::class);
 
     // Services

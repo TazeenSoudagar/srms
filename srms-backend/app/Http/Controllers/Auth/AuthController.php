@@ -48,7 +48,7 @@ class AuthController extends Controller
             Auth::login($user);
             $token = $user->createToken('auth-token')->plainTextToken;
 
-            return new JsonResponse(new AuthResource($user->load('role'), $token));
+            return new JsonResponse(new AuthResource($user->load(['role', 'avatar']), $token));
         }
 
         return null;
@@ -157,6 +157,6 @@ class AuthController extends Controller
         // Create Sanctum token
         $token = $user->createToken('auth-token')->plainTextToken;
 
-        return new JsonResponse(new AuthResource($user->load('role'), $token));
+        return new JsonResponse(new AuthResource($user->load(['role', 'avatar']), $token));
     }
 }
