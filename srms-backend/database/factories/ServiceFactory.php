@@ -18,7 +18,7 @@ class ServiceFactory extends Factory
     {
         return [
             'name' => fake()->words(3, true),
-            'description' => fake()->paragraph(),
+            'description' => substr(fake()->sentence(15), 0, 250),
             'is_active' => true,
         ];
     }

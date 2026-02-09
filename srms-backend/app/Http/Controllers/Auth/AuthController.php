@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\LoginPasswordRequest;
 use App\Http\Requests\Auth\SendOtpRequest;
 use App\Http\Requests\Auth\VerifyOtpRequest;
 use App\Http\Resources\AuthResource;
@@ -14,6 +15,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -152,6 +154,32 @@ class AuthController extends Controller
             ], 500);
         }
 
+        Auth::login($user);
+
+        // Create Sanctum token
+        $token = $user->createToken('auth-token')->plainTextToken;
+
+        return new JsonResponse(new AuthResource($user->load(['role', 'avatar']), $token));
+    }
+
+    /**
+     * Login with email and password
+     */
+    public function loginPassword(LoginPasswordRequest $request): JsonResponse
+    {
+        // Find user by email and check if active
+        $user = User::where('email', $request->email)
+            ->where('is_active', true)
+            ->first();
+
+        // Check if user exists and password is correct
+        if (! $user || ! Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'message' => 'Invalid credentials',
+            ], 401);
+        }
+
+        // Authenticate user
         Auth::login($user);
 
         // Create Sanctum token

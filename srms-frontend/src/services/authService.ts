@@ -11,4 +11,9 @@ export const authService = {
     const response = await api.post('/auth/verify-otp', { email, otp, type })
     return response.data
   },
+
+  loginPassword: async (email: string, password: string): Promise<AuthResponse> => {
+    const response = await api.post('/auth/login-password', { email, password })
+    return response.data
+  },
 }

@@ -14,9 +14,15 @@ Route::prefix('auth')->group(function () {
 
     Route::post('verify-otp', [AuthController::class, 'verifyOtp'])
         ->middleware('throttle:10,1'); // 10 requests per minute
+
+    Route::post('login-password', [AuthController::class, 'loginPassword'])
+        ->middleware('throttle:10,1'); // 10 requests per minute
 });
 
 Route::middleware('auth:sanctum')->group(function () {
+    // Dashboard
+    Route::get('dashboard/stats', [\App\Http\Controllers\Api\DashboardController::class, 'getStats']);
+
     // Profile routes (for authenticated user)
     Route::prefix('profile')->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\ProfileController::class, 'show']);

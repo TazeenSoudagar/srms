@@ -76,4 +76,12 @@ class User extends Authenticatable
         $parts = array_filter([$this->first_name, $this->last_name]);
         return implode(' ', $parts) ?: $this->email;
     }
+
+    /**
+     * Get the user's hashid.
+     */
+    public function getHashidAttribute(): string
+    {
+        return app(\App\Services\HashidsService::class)->encode($this->id);
+    }
 }

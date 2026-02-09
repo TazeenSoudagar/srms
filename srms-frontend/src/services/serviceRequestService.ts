@@ -32,7 +32,22 @@ interface PaginatedResponse<T> {
   }
 }
 
+interface DashboardStats {
+  total: number
+  open: number
+  in_progress: number
+  closed: number
+  high_priority: number
+  overdue: number
+  due_within_7_days: number
+}
+
 export const serviceRequestService = {
+  getDashboardStats: async (): Promise<DashboardStats> => {
+    const response = await api.get('/dashboard/stats')
+    return response.data
+  },
+
   getServiceRequests: async (
     filters?: ServiceRequestFilters
   ): Promise<PaginatedResponse<ServiceRequest>> => {

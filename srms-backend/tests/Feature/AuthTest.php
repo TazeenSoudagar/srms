@@ -41,5 +41,5 @@ test('otp verification requires valid data', function () {
     ]);
 
     $response->assertUnprocessable()
-        ->assertJsonValidationErrors(['type']);
+        ->assertJsonValidationErrors(['email']); // Email doesn't exist
 });

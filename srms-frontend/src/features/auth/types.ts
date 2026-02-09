@@ -11,6 +11,11 @@ export interface AuthResponse {
     email: string
     phone: string
     is_active: boolean
+    avatar: {
+      id: string
+      name: string
+      url: string
+    } | null
     role: {
       id: number
       name: string
