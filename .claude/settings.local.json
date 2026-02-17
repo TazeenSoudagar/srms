@@ -16,7 +16,24 @@
       "mcp__github__create_branch",
       "Bash(npm run dev:*)",
       "Bash(git add:*)",
-      "mcp__github__list_issues"
+      "mcp__github__list_issues",
+      "Bash(gh issue view:*)",
+      "mcp__github__get_label",
+      "Bash(git checkout:*)",
+      "Bash(composer require:*)",
+      "Bash(where:*)",
+      "Bash(C:/Users/TazeenSoudagar/.config/herd/bin/php.bat:*)",
+      "Bash(cmd //c:*)",
+      "Bash(npm install:*)",
+      "mcp__plugin_playwright_playwright__browser_navigate",
+      "mcp__plugin_playwright_playwright__browser_snapshot",
+      "mcp__plugin_playwright_playwright__browser_take_screenshot",
+      "Bash(git reset:*)",
+      "mcp__plugin_playwright_playwright__browser_type",
+      "mcp__plugin_playwright_playwright__browser_click",
+      "mcp__plugin_playwright_playwright__browser_run_code",
+      "Bash(PHASE-2-BACKEND-COMPLETE.md:*)",
+      "mcp__plugin_playwright_playwright__browser_close"
     ]
   }
 }

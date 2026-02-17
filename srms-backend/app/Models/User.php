@@ -6,6 +6,8 @@ namespace App\Models;
 use App\Models\Concerns\HasHashidsRouteBinding;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -28,6 +30,18 @@ class User extends Authenticatable
         'role_id',
         'email',
         'is_active',
+        // Engineer profile fields
+        'latitude',
+        'longitude',
+        'address',
+        'city',
+        'state',
+        'country',
+        'bio',
+        'hourly_rate',
+        'years_of_experience',
+        'specializations',
+        'availability_status',
     ];
 
     /**
@@ -51,6 +65,11 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'specializations' => 'array',
+            'latitude' => 'float',
+            'longitude' => 'float',
+            'hourly_rate' => 'decimal:2',
+            'years_of_experience' => 'integer',
         ];
     }
 
@@ -83,5 +102,29 @@ class User extends Authenticatable
     public function getHashidAttribute(): string
     {
         return app(\App\Services\HashidsService::class)->encode($this->id);
+    }
+
+    /**
+     * Get ratings submitted by this user (as a customer).
+     */
+    public function ratingsGiven(): HasMany
+    {
+        return $this->hasMany(Rating::class, 'user_id');
+    }
+
+    /**
+     * Get ratings received by this user (as an engineer).
+     */
+    public function ratingsReceived(): HasMany
+    {
+        return $this->hasMany(Rating::class, 'engineer_id');
+    }
+
+    /**
+     * Get the engineer's rating aggregate.
+     */
+    public function ratingAggregate(): HasOne
+    {
+        return $this->hasOne(EngineerRatingAggregate::class, 'engineer_id');
     }
 }

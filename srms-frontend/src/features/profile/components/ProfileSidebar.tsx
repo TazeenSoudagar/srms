@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -75,14 +76,15 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onClose 
 
   if (!user) return null
 
-  return (
+  return createPortal(
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-black transition-opacity duration-300 z-40 ${
-          isOpen ? 'opacity-50' : 'opacity-0 pointer-events-none'
+        className={`fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 z-50 ${
+          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={onClose}
+        role="presentation"
       />
 
       {/* Sidebar */}
@@ -92,12 +94,15 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onClose 
         }`}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-6 text-white">
-          <div className="flex justify-between items-start mb-4">
-            <h2 className="text-2xl font-bold">My Profile</h2>
+        <div className="border-b border-slate-200 bg-white px-6 py-6">
+          <div className="flex justify-between items-start mb-6">
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight text-slate-900">My Profile</h2>
+              <p className="text-sm text-slate-600 mt-1">Manage your account settings</p>
+            </div>
             <button
               onClick={onClose}
-              className="text-white hover:text-gray-200 transition-colors"
+              className="text-slate-400 hover:text-slate-600 transition-colors p-1 hover:bg-slate-100 rounded-lg"
               aria-label="Close"
             >
               <svg
@@ -114,18 +119,18 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onClose 
             </button>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
             <Avatar
               src={user.avatar?.url}
               alt={`${user.first_name} ${user.last_name}`}
               size="lg"
             />
-            <div>
-              <h3 className="font-semibold text-lg">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-lg text-slate-900 truncate">
                 {user.first_name} {user.last_name}
               </h3>
-              <p className="text-sm text-blue-100">{user.email}</p>
-              <span className="inline-block mt-1 px-2 py-1 bg-white/20 rounded text-xs">
+              <p className="text-sm text-slate-600 truncate">{user.email}</p>
+              <span className="inline-block mt-2 px-2.5 py-1 bg-primary-100 text-primary-700 rounded-md text-xs font-medium">
                 {user.role.name}
               </span>
             </div>
@@ -133,33 +138,33 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onClose 
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-gray-200">
+        <div className="flex border-b border-slate-200 bg-white sticky top-0 z-10">
           <button
             onClick={() => setActiveTab('details')}
-            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+            className={`flex-1 px-4 py-3 text-sm font-semibold transition-all ${
               activeTab === 'details'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50/50'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
             }`}
           >
             Personal Details
           </button>
           <button
             onClick={() => setActiveTab('picture')}
-            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+            className={`flex-1 px-4 py-3 text-sm font-semibold transition-all ${
               activeTab === 'picture'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50/50'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
             }`}
           >
             Profile Picture
           </button>
           <button
             onClick={() => setActiveTab('password')}
-            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+            className={`flex-1 px-4 py-3 text-sm font-semibold transition-all ${
               activeTab === 'password'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50/50'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
             }`}
           >
             Password
@@ -167,11 +172,11 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onClose 
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 bg-slate-50">
           {/* Personal Details Tab */}
           {activeTab === 'details' && (
-            <div>
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 {error && <ErrorMessage message={error} />}
 
                 <div className="grid grid-cols-2 gap-4">
@@ -204,26 +209,57 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onClose 
                   error={errors.phone?.message}
                 />
 
-                <Button type="submit" disabled={isLoading} className="w-full">
-                  {isLoading ? <LoadingSpinner size="sm" /> : 'Update Profile'}
-                </Button>
+                <div className="pt-2">
+                  <Button type="submit" disabled={isLoading} className="w-full" size="lg">
+                    {isLoading ? (
+                      <>
+                        <LoadingSpinner size="sm" />
+                        <span className="ml-2">Updating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          className="w-5 h-5 mr-2"
+                          fill="none"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Update Profile
+                      </>
+                    )}
+                  </Button>
+                </div>
               </form>
             </div>
           )}
 
           {/* Profile Picture Tab */}
-          {activeTab === 'picture' && <ProfilePictureUpload />}
+          {activeTab === 'picture' && (
+            <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+              <ProfilePictureUpload />
+            </div>
+          )}
 
           {/* Change Password Tab */}
-          {activeTab === 'password' && <ChangePasswordForm />}
+          {activeTab === 'password' && (
+            <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+              <ChangePasswordForm />
+            </div>
+          )}
         </div>
 
         {/* Footer with Logout */}
-        <div className="border-t border-gray-200 p-6">
+        <div className="border-t border-slate-200 p-6 bg-white sticky bottom-0">
           <Button
             type="button"
-            variant="outline"
-            className="w-full text-red-600 hover:bg-red-50 border-red-300"
+            variant="destructive"
+            className="w-full"
+            size="lg"
             onClick={handleLogout}
           >
             <svg
@@ -250,6 +286,7 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onClose 
           onClose={() => setShowSuccessToast(false)}
         />
       )}
-    </>
+    </>,
+    document.body
   )
 }

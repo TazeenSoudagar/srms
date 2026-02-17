@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { Eye, EyeOff } from 'lucide-react'
 import { Button } from '../../../components/common/Button'
 import { Input } from '../../../components/common/Input'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
@@ -110,24 +111,27 @@ export const LoginForm: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to SRMS
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 via-slate-50 to-slate-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-linear-to-br from-primary-600 to-primary-700 mb-4 shadow-lg shadow-primary-600/20">
+            <span className="text-white font-bold text-2xl">SR</span>
+          </div>
+          <h2 className="text-3xl font-bold text-slate-900 mb-2">
+            Welcome back
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="text-slate-600">
             {loginMethod === 'password'
-              ? 'Enter your email and password'
+              ? 'Sign in to your account'
               : step === 'email'
-              ? 'Enter your email to receive an OTP'
-              : `Enter the OTP sent to ${email}`}
+              ? "We'll send you a one-time code"
+              : `Enter the code sent to ${email}`}
           </p>
         </div>
 
-        <div className="bg-white py-8 px-6 shadow rounded-lg">
+        <div className="bg-white py-8 px-8 shadow-xl rounded-2xl border border-slate-200">
           {/* Login Method Tabs */}
-          <div className="flex mb-6 border-b border-gray-200">
+          <div className="flex gap-2 mb-6 p-1 bg-slate-100 rounded-xl">
             <button
               type="button"
               onClick={() => {
@@ -136,13 +140,13 @@ export const LoginForm: React.FC = () => {
                 setError(null)
                 setSuccess(null)
               }}
-              className={`flex-1 py-2 px-4 text-sm font-medium transition-colors ${
+              className={`flex-1 py-2.5 px-4 text-sm font-semibold rounded-lg transition-all duration-200 ${
                 loginMethod === 'password'
-                  ? 'border-b-2 border-blue-500 text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              Password Login
+              Password
             </button>
             <button
               type="button"
@@ -152,13 +156,13 @@ export const LoginForm: React.FC = () => {
                 setError(null)
                 setSuccess(null)
               }}
-              className={`flex-1 py-2 px-4 text-sm font-medium transition-colors ${
+              className={`flex-1 py-2.5 px-4 text-sm font-semibold rounded-lg transition-all duration-200 ${
                 loginMethod === 'otp'
-                  ? 'border-b-2 border-blue-500 text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              OTP Login
+              OTP
             </button>
           </div>
 
@@ -166,7 +170,7 @@ export const LoginForm: React.FC = () => {
           {success && <SuccessMessage message={success} className="mb-4" />}
 
           {loginMethod === 'password' ? (
-            <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
+            <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-5">
               <Input
                 label="Email Address"
                 type="email"
@@ -174,28 +178,41 @@ export const LoginForm: React.FC = () => {
                 {...passwordForm.register('email')}
                 error={passwordForm.formState.errors.email?.message}
               />
-              <div className="relative">
-                <Input
-                  label="Password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
-                  {...passwordForm.register('password')}
-                  error={passwordForm.formState.errors.password?.message}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
-                >
-                  {showPassword ? '🙈' : '👁️'}
-                </button>
+              <div>
+                <label htmlFor="password-input" className="block text-sm font-semibold text-slate-700 mb-2">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    id="password-input"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Enter your password"
+                    className={`w-full px-4 py-2.5 pr-12 border-2 rounded-lg bg-white text-slate-900 placeholder:text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed [&::-ms-reveal]:hidden [&::-ms-clear]:hidden ${
+                      passwordForm.formState.errors.password ? 'border-red-400 focus:border-red-500 focus:ring-red-500' : 'border-slate-200 hover:border-slate-300'
+                    }`}
+                    {...passwordForm.register('password')}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
+                {passwordForm.formState.errors.password?.message && (
+                  <p className="mt-1.5 text-sm text-red-600 font-medium">
+                    {passwordForm.formState.errors.password.message}
+                  </p>
+                )}
               </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full mt-6" size="lg" disabled={isLoading}>
                 {isLoading ? <LoadingSpinner size="sm" /> : 'Sign In'}
               </Button>
             </form>
           ) : step === 'email' ? (
-            <form onSubmit={emailForm.handleSubmit(onEmailSubmit)} className="space-y-4">
+            <form onSubmit={emailForm.handleSubmit(onEmailSubmit)} className="space-y-5">
               <Input
                 label="Email Address"
                 type="email"
@@ -203,25 +220,26 @@ export const LoginForm: React.FC = () => {
                 {...emailForm.register('email')}
                 error={emailForm.formState.errors.email?.message}
               />
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? <LoadingSpinner size="sm" /> : 'Send OTP'}
+              <Button type="submit" className="w-full mt-6" size="lg" disabled={isLoading}>
+                {isLoading ? <LoadingSpinner size="sm" /> : 'Send Code'}
               </Button>
             </form>
           ) : (
-            <form onSubmit={otpForm.handleSubmit(onOtpSubmit)} className="space-y-4">
+            <form onSubmit={otpForm.handleSubmit(onOtpSubmit)} className="space-y-5">
               <Input
-                label="OTP"
+                label="Verification Code"
                 type="text"
-                placeholder="Enter 6-digit OTP"
+                placeholder="Enter 6-digit code"
                 maxLength={6}
                 {...otpForm.register('otp')}
                 error={otpForm.formState.errors.otp?.message}
               />
-              <div className="flex space-x-2">
+              <div className="flex gap-3 mt-6">
                 <Button
                   type="button"
                   variant="outline"
                   className="flex-1"
+                  size="lg"
                   onClick={() => {
                     setStep('email')
                     setError(null)
@@ -230,8 +248,8 @@ export const LoginForm: React.FC = () => {
                 >
                   Back
                 </Button>
-                <Button type="submit" className="flex-1" disabled={isLoading}>
-                  {isLoading ? <LoadingSpinner size="sm" /> : 'Verify OTP'}
+                <Button type="submit" className="flex-1" size="lg" disabled={isLoading}>
+                  {isLoading ? <LoadingSpinner size="sm" /> : 'Verify'}
                 </Button>
               </div>
             </form>

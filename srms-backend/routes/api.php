@@ -58,4 +58,15 @@ Route::middleware('auth:sanctum')->group(function () {
     // Activity Logs (admin only)
     Route::get('activity-logs', [\App\Http\Controllers\Api\ActivityLogController::class, 'index']);
     Route::get('activity-logs/{activityLog}', [\App\Http\Controllers\Api\ActivityLogController::class, 'show']);
+
+    // Service Schedules
+    Route::prefix('schedules')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\ServiceScheduleController::class, 'index']);
+        Route::post('/', [\App\Http\Controllers\Api\ServiceScheduleController::class, 'store']);
+        Route::get('/available-slots', [\App\Http\Controllers\Api\ServiceScheduleController::class, 'availableSlots']);
+        Route::get('/{schedule}', [\App\Http\Controllers\Api\ServiceScheduleController::class, 'show']);
+        Route::put('/{schedule}', [\App\Http\Controllers\Api\ServiceScheduleController::class, 'update']);
+        Route::post('/{schedule}/cancel', [\App\Http\Controllers\Api\ServiceScheduleController::class, 'cancel']);
+        Route::post('/{schedule}/complete', [\App\Http\Controllers\Api\ServiceScheduleController::class, 'complete']);
+    });
 });
