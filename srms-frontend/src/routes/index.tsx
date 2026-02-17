@@ -1,6 +1,9 @@
 import React from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from '../contexts/AuthContext'
+import { WebSocketProvider } from '../contexts/WebSocketContext'
+import { NotificationProvider } from '../contexts/NotificationContext'
+import { NotificationToast } from '../components/ui/NotificationToast'
 import { ProtectedRoute } from './ProtectedRoute'
 
 import { LoginForm } from '../features/auth/components/LoginForm'
@@ -32,6 +35,7 @@ const ServiceEditPage = () => <ServiceForm isEdit />
 import { ActivityLogList } from '../features/activityLogs/components/ActivityLogList'
 
 const ActivityLogListPage = () => <ActivityLogList />
+import { SchedulingPage } from '../features/schedules/pages/SchedulingPage'
 
 const AppRoutes: React.FC = () => {
   const { isAuthenticated } = useAuth()
@@ -138,6 +142,14 @@ const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/schedules/:serviceRequestId"
+        element={
+          <ProtectedRoute>
+            <SchedulingPage />
+          </ProtectedRoute>
+        }
+      />
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   )
@@ -147,7 +159,12 @@ export const AppRouter: React.FC = () => {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppRoutes />
+        <WebSocketProvider>
+          <NotificationProvider>
+            <NotificationToast />
+            <AppRoutes />
+          </NotificationProvider>
+        </WebSocketProvider>
       </AuthProvider>
     </BrowserRouter>
   )

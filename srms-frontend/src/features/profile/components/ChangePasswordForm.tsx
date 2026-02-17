@@ -54,10 +54,8 @@ export const ChangePasswordForm: React.FC = () => {
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Change Password</h3>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <div className="p-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {error && <ErrorMessage message={error} />}
 
         <Input
@@ -84,9 +82,54 @@ export const ChangePasswordForm: React.FC = () => {
           required
         />
 
-        <Button type="submit" disabled={isLoading} className="w-full">
-          {isLoading ? <LoadingSpinner size="sm" /> : 'Change Password'}
-        </Button>
+        <div className="pt-2">
+          <Button type="submit" disabled={isLoading} className="w-full" size="lg">
+            {isLoading ? (
+              <>
+                <LoadingSpinner size="sm" />
+                <span className="ml-2">Changing Password...</span>
+              </>
+            ) : (
+              <>
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Change Password
+              </>
+            )}
+          </Button>
+        </div>
+
+        {/* Security Notice */}
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <div className="flex gap-3">
+            <svg
+              className="w-5 h-5 text-amber-600 shrink-0 mt-0.5"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <div>
+              <p className="text-xs font-medium text-amber-900">Password Requirements</p>
+              <p className="text-xs text-amber-700 mt-1">
+                Use at least 8 characters with a mix of letters, numbers, and symbols for better security.
+              </p>
+            </div>
+          </div>
+        </div>
       </form>
 
       {/* Success Toast */}

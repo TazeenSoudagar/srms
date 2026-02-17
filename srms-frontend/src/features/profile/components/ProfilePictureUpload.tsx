@@ -199,14 +199,12 @@ export const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({ onSu
         />
       )}
 
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Picture</h3>
-
-        <div className="flex flex-col items-center space-y-4">
-          {/* Avatar with Instagram-style icons */}
+      <div className="p-6">
+        <div className="flex flex-col items-center space-y-6">
+          {/* Avatar with modern icons */}
           <div className="relative group">
             {/* Large Avatar */}
-            <div className="w-40 h-40 rounded-full flex items-center justify-center font-semibold text-white overflow-hidden border-4 border-white shadow-lg bg-gradient-to-br from-blue-500 to-purple-600">
+            <div className="w-40 h-40 rounded-full flex items-center justify-center font-semibold text-white overflow-hidden border-4 border-slate-100 shadow-lg bg-linear-to-br from-primary-500 to-primary-600">
               {displayUrl ? (
                 <img
                   src={displayUrl}
@@ -232,16 +230,16 @@ export const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({ onSu
               )}
             </div>
 
-            {/* Edit Icon (Instagram style) */}
+            {/* Edit Icon */}
             {!previewUrl && (
               <button
                 onClick={handleEditClick}
                 disabled={isUploading || isDeleting}
-                className="absolute bottom-2 right-2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors border-2 border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="absolute bottom-2 right-2 w-11 h-11 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-primary-50 hover:shadow-lg transition-all border-2 border-slate-200 hover:border-primary-400 disabled:opacity-50 disabled:cursor-not-allowed group/edit"
                 title="Edit profile picture"
               >
                 <svg
-                  className="w-5 h-5 text-gray-700"
+                  className="w-5 h-5 text-slate-600 group-hover/edit:text-primary-600 transition-colors"
                   fill="none"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -254,19 +252,19 @@ export const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({ onSu
               </button>
             )}
 
-            {/* Delete Icon (Instagram style) - Only show if avatar exists and not in preview mode */}
+            {/* Delete Icon - Only show if avatar exists and not in preview mode */}
             {user.avatar && !previewUrl && (
               <button
                 onClick={handleDeleteAvatar}
                 disabled={isUploading || isDeleting}
-                className="absolute top-2 right-2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-red-50 transition-colors border-2 border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="absolute top-2 right-2 w-11 h-11 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-red-50 hover:shadow-lg transition-all border-2 border-slate-200 hover:border-red-300 disabled:opacity-50 disabled:cursor-not-allowed group/delete"
                 title="Delete profile picture"
               >
                 {isDeleting ? (
                   <LoadingSpinner size="sm" />
                 ) : (
                   <svg
-                    className="w-5 h-5 text-red-600"
+                    className="w-5 h-5 text-slate-600 group-hover/delete:text-red-600 transition-colors"
                     fill="none"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -292,12 +290,13 @@ export const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({ onSu
 
           {/* Save/Cancel buttons - Only show when preview is active */}
           {previewUrl && (
-            <div className="flex space-x-3 w-full max-w-xs">
+            <div className="flex space-x-3 w-full">
               <Button
                 type="button"
                 onClick={handleSaveAvatar}
                 disabled={isUploading}
                 className="flex-1"
+                size="lg"
               >
                 {isUploading ? (
                   <>
@@ -305,7 +304,20 @@ export const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({ onSu
                     <span className="ml-2">Saving...</span>
                   </>
                 ) : (
-                  'Save Picture'
+                  <>
+                    <svg
+                      className="w-5 h-5 mr-2"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Save Picture
+                  </>
                 )}
               </Button>
               <Button
@@ -314,6 +326,7 @@ export const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({ onSu
                 disabled={isUploading}
                 variant="outline"
                 className="flex-1"
+                size="lg"
               >
                 Cancel
               </Button>
@@ -324,9 +337,11 @@ export const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({ onSu
           {error && <ErrorMessage message={error} />}
 
           {/* Help text */}
-          <p className="text-xs text-gray-500 text-center">
-            Allowed: JPG, JPEG, PNG (max 5MB)
-          </p>
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 w-full">
+            <p className="text-xs text-slate-600 text-center font-medium">
+              Allowed formats: JPG, JPEG, PNG (max 5MB)
+            </p>
+          </div>
         </div>
       </div>
     </>

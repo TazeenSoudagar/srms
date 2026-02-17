@@ -8,6 +8,7 @@ use App\Enums\RequestPriority;
 use App\Enums\RequestStatus;
 use App\Models\Concerns\HasHashidsRouteBinding;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -39,6 +40,18 @@ class ServiceRequest extends Model
         'status' => RequestStatus::class,
         'priority' => RequestPriority::class,
     ];
+
+    protected $appends = ['hashed_id'];
+
+    /**
+     * Get the hashed ID for the service request.
+     */
+    protected function hashedId(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => \Vinkla\Hashids\Facades\Hashids::encode($this->id),
+        );
+    }
 
     /**
      * Get the service that this request belongs to.
