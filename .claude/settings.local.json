@@ -45,7 +45,16 @@
       "WebSearch",
       "mcp__plugin_context7_context7__resolve-library-id",
       "WebFetch(domain:unsplash.com)",
-      "mcp__github__list_pull_requests"
+      "mcp__github__list_pull_requests",
+      "Bash(gh issue edit:*)",
+      "Bash(gh label create:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(npx create-next-app@latest:*)",
+      "Bash(curl:*)",
+      "Bash(npm:*)",
+      "Bash(node --version:*)",
+      "mcp__plugin_playwright_playwright__browser_resize",
+      "mcp__plugin_playwright_playwright__browser_console_messages"
     ]
   }
 }
