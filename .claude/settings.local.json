@@ -33,7 +33,18 @@
       "mcp__plugin_playwright_playwright__browser_click",
       "mcp__plugin_playwright_playwright__browser_run_code",
       "Bash(PHASE-2-BACKEND-COMPLETE.md:*)",
-      "mcp__plugin_playwright_playwright__browser_close"
+      "mcp__plugin_playwright_playwright__browser_close",
+      "Bash(git restore:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "mcp__github__create_pull_request",
+      "mcp__plugin_playwright_playwright__browser_evaluate",
+      "WebFetch(domain:www.urbancompany.com)",
+      "WebFetch(domain:www.housejoy.in)",
+      "WebSearch",
+      "mcp__plugin_context7_context7__resolve-library-id",
+      "WebFetch(domain:unsplash.com)",
+      "mcp__github__list_pull_requests"
     ]
   }
 }
