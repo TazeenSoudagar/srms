@@ -13,6 +13,7 @@ use App\Jobs\Auth\SendOtpJob;
 use App\Models\OtpVerification;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -186,5 +187,17 @@ class AuthController extends Controller
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return new JsonResponse(new AuthResource($user->load(['role', 'avatar']), $token));
+    }
+
+    /**
+     * Logout the authenticated user
+     */
+    public function logout(Request $request): JsonResponse
+    {
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json([
+            'message' => 'Logged out successfully',
+        ]);
     }
 }

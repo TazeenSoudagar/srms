@@ -8,6 +8,7 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+// Public authentication routes
 Route::prefix('auth')->group(function () {
     Route::post('send-otp', [AuthController::class, 'sendOtp'])
         ->middleware('throttle:5,1'); // 5 requests per minute
@@ -17,6 +18,26 @@ Route::prefix('auth')->group(function () {
 
     Route::post('login-password', [AuthController::class, 'loginPassword'])
         ->middleware('throttle:10,1'); // 10 requests per minute
+
+    // Authenticated auth routes
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('logout', [AuthController::class, 'logout']);
+    });
+});
+
+// Public routes - No authentication required
+Route::prefix('public')->group(function () {
+    // Categories
+    Route::get('categories', [\App\Http\Controllers\Api\CategoryController::class, 'index']);
+    Route::get('categories/{category}', [\App\Http\Controllers\Api\CategoryController::class, 'show']);
+    Route::get('categories/{category}/services', [\App\Http\Controllers\Api\CategoryController::class, 'services']);
+
+    // Services - Browse and search
+    Route::get('services', [\App\Http\Controllers\Api\ServiceController::class, 'index']);
+    Route::get('services/featured', [\App\Http\Controllers\Api\ServiceController::class, 'featured']);
+    Route::get('services/trending', [\App\Http\Controllers\Api\ServiceController::class, 'trending']);
+    Route::get('services/search', [\App\Http\Controllers\Api\ServiceController::class, 'search']);
+    Route::get('services/{service}', [\App\Http\Controllers\Api\ServiceController::class, 'show']);
 });
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -34,8 +55,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('users', \App\Http\Controllers\Api\UserController::class);
 
-    // Services
-    Route::apiResource('services', \App\Http\Controllers\Api\ServiceController::class);
+    // Services - Admin only CRUD (Create, Update, Delete)
+    Route::apiResource('services', \App\Http\Controllers\Api\ServiceController::class)
+        ->except(['index', 'show']);
 
     // Service Requests
     Route::apiResource('service-requests', \App\Http\Controllers\Api\ServiceRequestController::class);

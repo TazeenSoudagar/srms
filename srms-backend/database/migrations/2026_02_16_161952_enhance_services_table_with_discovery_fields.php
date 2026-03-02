@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::table('services', function (Blueprint $table) {
             // Discovery and categorization fields
-            $table->string('category')->nullable()->after('description');
-            $table->string('icon')->nullable()->after('category');
+            $table->foreignId('category_id')->nullable()->after('description')->constrained('categories')->onDelete('set null');
+            $table->string('icon')->nullable()->after('category_id');
 
             // Pricing and duration
             $table->integer('average_duration_minutes')->nullable()->after('icon');
@@ -26,7 +26,7 @@ return new class extends Migration
             $table->boolean('is_trending')->default(false)->after('view_count');
 
             // Indexes for performance
-            $table->index('category');
+            $table->index('category_id');
             $table->index('is_trending');
             $table->index('popularity_score');
         });
@@ -38,12 +38,13 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('services', function (Blueprint $table) {
-            $table->dropIndex(['category']);
+            $table->dropForeign(['category_id']);
+            $table->dropIndex(['category_id']);
             $table->dropIndex(['is_trending']);
             $table->dropIndex(['popularity_score']);
 
             $table->dropColumn([
-                'category',
+                'category_id',
                 'icon',
                 'average_duration_minutes',
                 'base_price',

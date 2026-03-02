@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
         $this->call([
             RoleSeeder::class,
+            CategorySeeder::class,  // Must run before ServiceSeeder
             ServiceSeeder::class,
             UserSeeder::class,
         ]);
