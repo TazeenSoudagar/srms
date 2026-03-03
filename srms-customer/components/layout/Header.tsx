@@ -55,11 +55,13 @@ export default function Header() {
     <header className="sticky top-0 z-50 bg-white border-b border-neutral-200 shadow-sm">
       <Container>
         <div className="flex items-center justify-between h-16 md:h-20">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
-              <span className="text-white font-bold text-xl">S</span>
-            </div>
+          {/* Logo - TODO: Add dark mode support with logo-dark.png */}
+          <Link href="/" className="flex items-center gap-3 group">
+            <img
+              src="/logo-1.png"
+              alt="SRMS Logo"
+              className="h-14 w-auto"
+            />
             <div className="hidden sm:block">
               <span className="text-xl font-bold text-neutral-900">SRMS</span>
               <p className="text-xs text-neutral-600 -mt-1">Home Services</p>

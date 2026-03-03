@@ -27,10 +27,13 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               <Menu className="h-6 w-6 text-slate-600" />
             </button>
 
-            <Link to="/dashboard" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 rounded-lg bg-linear-to-br from-primary-600 to-primary-700 flex items-center justify-center shrink-0">
-                <span className="text-white font-bold text-sm">SH</span>
-              </div>
+            <Link to="/dashboard" className="flex items-center gap-3 group">
+              {/* Logo - TODO: Add dark mode support with logo-dark.png */}
+              <img
+                src="/logo-1.png"
+                alt="SRMS Logo"
+                className="h-12 w-auto shrink-0"
+              />
               <span className="text-xl font-bold text-slate-900 group-hover:text-primary-600 transition-colors">
                 Service Hub
               </span>
