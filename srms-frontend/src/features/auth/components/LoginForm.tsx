@@ -114,8 +114,13 @@ export const LoginForm: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 via-slate-50 to-slate-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-linear-to-br from-primary-600 to-primary-700 mb-4 shadow-lg shadow-primary-600/20">
-            <span className="text-white font-bold text-2xl">SR</span>
+          {/* Logo - TODO: Add dark mode support with logo-dark.png */}
+          <div className="inline-flex items-center justify-center mb-4">
+            <img
+              src="/logo-1.png"
+              alt="SRMS Logo"
+              className="h-16 w-auto"
+            />
           </div>
           <h2 className="text-3xl font-bold text-slate-900 mb-2">
             Welcome back

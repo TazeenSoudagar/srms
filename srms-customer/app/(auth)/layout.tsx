@@ -9,12 +9,14 @@ export default function AuthLayout({
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50">
       <div className="container mx-auto px-4 py-8">
-        {/* Logo */}
+        {/* Logo - TODO: Add dark mode support with logo-dark.png */}
         <Link href="/" className="inline-block mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-              <span className="text-white font-bold text-xl">S</span>
-            </div>
+            <img
+              src="/logo-1.png"
+              alt="SRMS Logo"
+              className="h-12 w-auto"
+            />
             <span className="text-2xl font-bold text-neutral-900">SRMS</span>
           </div>
         </Link>
