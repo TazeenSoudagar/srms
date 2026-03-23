@@ -83,7 +83,7 @@ export default function LoginPage() {
           variant="primary"
           size="lg"
           className="w-full"
-          loading={isLoading}
+          isLoading={isLoading}
           disabled={!email || !validateEmail(email)}
         >
           {isLoading ? "Sending OTP..." : "Send OTP"}

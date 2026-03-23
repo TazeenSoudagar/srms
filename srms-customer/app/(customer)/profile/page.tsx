@@ -165,11 +165,11 @@ export default function ProfilePage() {
                 </h3>
                 <p className="text-sm text-neutral-500 mb-4">{profile.email}</p>
 
-                {profile.createdAt && (
+                {(profile as UserProfile & { createdAt?: string }).createdAt && (
                   <div className="flex items-center gap-2 text-sm text-neutral-600">
                     <Calendar className="h-4 w-4" />
                     <span>
-                      Joined {new Date(profile.createdAt).toLocaleDateString()}
+                      Joined {new Date((profile as UserProfile & { createdAt?: string }).createdAt!).toLocaleDateString()}
                     </span>
                   </div>
                 )}

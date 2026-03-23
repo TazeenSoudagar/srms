@@ -36,7 +36,7 @@ export default function ServicesPage() {
 
       // Fetch services
       const servicesResponse = await servicesApi.getAll({
-        category: selectedCategory !== "all" ? selectedCategory : undefined,
+        categoryId: selectedCategory !== "all" ? selectedCategory : undefined,
       });
       setServices(servicesResponse.data || []);
     } catch (error) {
@@ -90,9 +90,9 @@ export default function ServicesPage() {
             {categories.map((category) => (
               <button
                 key={category.id}
-                onClick={() => setSelectedCategory(category.slug)}
+                onClick={() => setSelectedCategory(category.id)}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  selectedCategory === category.slug
+                  selectedCategory === category.id
                     ? "bg-primary-600 text-white"
                     : "bg-white text-neutral-700 hover:bg-neutral-100"
                 }`}

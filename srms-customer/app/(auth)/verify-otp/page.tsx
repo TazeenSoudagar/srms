@@ -165,7 +165,7 @@ function VerifyOtpContent() {
             {otp.map((digit, index) => (
               <input
                 key={index}
-                ref={(el) => (inputRefs.current[index] = el)}
+                ref={(el) => { inputRefs.current[index] = el; }}
                 type="text"
                 inputMode="numeric"
                 maxLength={1}
@@ -198,7 +198,7 @@ function VerifyOtpContent() {
           variant="primary"
           size="lg"
           className="w-full"
-          loading={isLoading}
+          isLoading={isLoading}
           disabled={otp.join("").length !== 6}
         >
           {isLoading ? "Verifying..." : "Verify & Continue"}
