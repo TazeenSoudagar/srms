@@ -1,11 +1,9 @@
 // Backend returns snake_case fields - aligned with Laravel API Resources
 
 export type ServiceRequestStatus =
-  | 'pending'
-  | 'confirmed'
+  | 'open'
   | 'in_progress'
-  | 'completed'
-  | 'cancelled';
+  | 'closed';
 
 export type ServiceRequestPriority = 'low' | 'medium' | 'high';
 

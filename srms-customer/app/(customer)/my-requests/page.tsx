@@ -23,14 +23,9 @@ const statusConfig: Record<
   ServiceRequestStatus,
   { label: string; icon: React.ElementType; color: string }
 > = {
-  pending: {
-    label: "Pending",
+  open: {
+    label: "Open",
     icon: Clock,
-    color: "bg-yellow-100 text-yellow-700",
-  },
-  confirmed: {
-    label: "Confirmed",
-    icon: CheckCircle2,
     color: "bg-blue-100 text-blue-700",
   },
   in_progress: {
@@ -38,25 +33,18 @@ const statusConfig: Record<
     icon: Clock,
     color: "bg-orange-100 text-orange-700",
   },
-  completed: {
-    label: "Completed",
+  closed: {
+    label: "Closed",
     icon: CheckCircle2,
     color: "bg-green-100 text-green-700",
-  },
-  cancelled: {
-    label: "Cancelled",
-    icon: XCircle,
-    color: "bg-red-100 text-red-700",
   },
 };
 
 const filterTabs = [
   { key: "all", label: "All Requests" },
-  { key: "pending", label: "Pending" },
-  { key: "confirmed", label: "Confirmed" },
+  { key: "open", label: "Open" },
   { key: "in_progress", label: "In Progress" },
-  { key: "completed", label: "Completed" },
-  { key: "cancelled", label: "Cancelled" },
+  { key: "closed", label: "Closed" },
 ];
 
 export default function MyRequestsPage() {
@@ -167,7 +155,7 @@ export default function MyRequestsPage() {
             <div className="space-y-4">
               {requests.map((request) => {
                 const status =
-                  statusConfig[request.status] || statusConfig.pending;
+                  statusConfig[request.status] || statusConfig.open;
                 const StatusIcon = status.icon;
 
                 return (

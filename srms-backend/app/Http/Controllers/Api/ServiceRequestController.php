@@ -112,6 +112,7 @@ class ServiceRequestController extends Controller
         $data = $request->validated();
         $data['request_number'] = ServiceRequest::generateRequestNumber();
         $data['created_by'] = $user->id;
+        $data['priority'] = $data['priority'] ?? 'medium';
         $data['status'] = 'open';
         $data['is_active'] = true;
 

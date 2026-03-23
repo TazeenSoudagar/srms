@@ -41,15 +41,9 @@ const statusConfig: Record<
   ServiceRequestStatus,
   { label: string; icon: React.ElementType; color: string; bgColor: string }
 > = {
-  pending: {
-    label: "Pending Review",
+  open: {
+    label: "Open",
     icon: Clock,
-    color: "text-yellow-700",
-    bgColor: "bg-yellow-100",
-  },
-  confirmed: {
-    label: "Confirmed",
-    icon: CheckCircle2,
     color: "text-blue-700",
     bgColor: "bg-blue-100",
   },
@@ -59,31 +53,24 @@ const statusConfig: Record<
     color: "text-orange-700",
     bgColor: "bg-orange-100",
   },
-  completed: {
-    label: "Completed",
+  closed: {
+    label: "Closed",
     icon: CheckCircle2,
     color: "text-green-700",
     bgColor: "bg-green-100",
   },
-  cancelled: {
-    label: "Cancelled",
-    icon: XCircle,
-    color: "text-red-700",
-    bgColor: "bg-red-100",
-  },
 };
 
 const timelineSteps: { status: ServiceRequestStatus; label: string }[] = [
-  { status: "pending", label: "Submitted" },
-  { status: "confirmed", label: "Confirmed" },
+  { status: "open", label: "Submitted" },
   { status: "in_progress", label: "In Progress" },
-  { status: "completed", label: "Completed" },
+  { status: "closed", label: "Closed" },
 ];
 
 // ─── Timeline Component ───────────────────────────────────────────────────────
 
 function StatusTimeline({ currentStatus }: { currentStatus: ServiceRequestStatus }) {
-  const isCancelled = currentStatus === "cancelled";
+  const isCancelled = currentStatus === "closed";
   const currentIndex = timelineSteps.findIndex((s) => s.status === currentStatus);
 
   return (
@@ -99,8 +86,8 @@ function StatusTimeline({ currentStatus }: { currentStatus: ServiceRequestStatus
       ) : (
         <div className="flex items-center gap-0 overflow-x-auto pb-2">
           {timelineSteps.map((step, idx) => {
-            const isDone = idx < currentIndex || (idx === currentIndex && currentStatus === "completed");
-            const isCurrent = idx === currentIndex && currentStatus !== "completed";
+            const isDone = idx < currentIndex;
+            const isCurrent = idx === currentIndex;
             const isUpcoming = idx > currentIndex;
 
             return (
@@ -404,10 +391,9 @@ export default function RequestDetailPage() {
     );
   }
 
-  const statusInfo = statusConfig[request.status] || statusConfig.pending;
+  const statusInfo = statusConfig[request.status] || statusConfig.open;
   const StatusIcon = statusInfo.icon;
-  const canCancel =
-    request.status === "pending" || request.status === "confirmed";
+  const canCancel = request.status === "open";
 
   return (
     <div className="min-h-screen bg-neutral-50">
