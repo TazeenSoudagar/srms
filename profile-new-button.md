@@ -1,0 +1,151 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e5]:
+        - link "SRMS Logo SRMS Home Services" [ref=e6] [cursor=pointer]:
+          - /url: /
+          - img "SRMS Logo" [ref=e7]
+          - generic [ref=e8]:
+            - text: SRMS
+            - paragraph [ref=e9]: Home Services
+        - navigation [ref=e10]:
+          - link "Home" [ref=e11] [cursor=pointer]:
+            - /url: /
+          - link "Services" [ref=e12] [cursor=pointer]:
+            - /url: /services
+          - link "My Requests" [ref=e13] [cursor=pointer]:
+            - /url: /my-requests
+          - link "Contact" [ref=e14] [cursor=pointer]:
+            - /url: /contact
+        - generic [ref=e15]:
+          - link "Book Service" [ref=e104] [cursor=pointer]:
+            - /url: /services
+            - button "Book Service" [ref=e105]
+          - button "U User" [ref=e107] [cursor=pointer]:
+            - generic [ref=e109]: U
+            - generic [ref=e110]: User
+            - img [ref=e111]
+    - main [ref=e22]:
+      - generic [ref=e25]:
+        - generic [ref=e114]:
+          - heading "My Profile" [level=1] [ref=e115]
+          - paragraph [ref=e116]: Manage your account information
+        - generic [ref=e120]:
+          - generic [ref=e122]:
+            - img [ref=e124]
+            - heading "Allen Lynch" [level=3] [ref=e127]
+            - paragraph [ref=e128]: fay.wilber@example.com
+            - generic [ref=e129]:
+              - img [ref=e130]
+              - generic [ref=e132]: Joined 3/2/2026
+          - generic [ref=e134]:
+            - heading "Personal Information" [level=3] [ref=e135]
+            - generic [ref=e167]:
+              - generic [ref=e168]:
+                - generic [ref=e169]:
+                  - generic [ref=e170]: First Name *
+                  - textbox [ref=e171]: Allen
+                - generic [ref=e172]:
+                  - generic [ref=e173]: Last Name *
+                  - textbox [ref=e174]: Lynch
+              - generic [ref=e175]:
+                - generic [ref=e176]: Email Address
+                - textbox [disabled] [ref=e177]: fay.wilber@example.com
+                - paragraph [ref=e178]: Email cannot be changed
+              - generic [ref=e179]:
+                - generic [ref=e180]: Phone Number
+                - textbox [ref=e181]: 1-641-648-4591
+              - generic [ref=e182]:
+                - button "Save Changes" [ref=e183] [cursor=pointer]:
+                  - img [ref=e184]
+                  - text: Save Changes
+                - button "Cancel" [ref=e188] [cursor=pointer]:
+                  - img [ref=e189]
+                  - text: Cancel
+    - contentinfo [ref=e27]:
+      - generic [ref=e28]:
+        - generic [ref=e30]:
+          - generic [ref=e31]:
+            - generic [ref=e32]:
+              - generic [ref=e34]: S
+              - generic [ref=e35]:
+                - text: SRMS
+                - paragraph [ref=e36]: Home Services
+            - paragraph [ref=e37]: Professional home services at your doorstep. Book trusted professionals for all your service needs with just a few clicks.
+            - generic [ref=e38]:
+              - generic [ref=e39]:
+                - img [ref=e40]
+                - generic [ref=e42]: +91 98765 43210
+              - generic [ref=e43]:
+                - img [ref=e44]
+                - generic [ref=e47]: support@srms.com
+              - generic [ref=e48]:
+                - img [ref=e49]
+                - generic [ref=e52]: Bangalore, India
+          - generic [ref=e53]:
+            - heading "Services" [level=3] [ref=e54]
+            - list [ref=e55]:
+              - listitem [ref=e56]:
+                - link "Plumbing" [ref=e57] [cursor=pointer]:
+                  - /url: /services/plumbing
+              - listitem [ref=e58]:
+                - link "Electrical" [ref=e59] [cursor=pointer]:
+                  - /url: /services/electrical
+              - listitem [ref=e60]:
+                - link "Cleaning" [ref=e61] [cursor=pointer]:
+                  - /url: /services/cleaning
+              - listitem [ref=e62]:
+                - link "Carpentry" [ref=e63] [cursor=pointer]:
+                  - /url: /services/carpentry
+              - listitem [ref=e64]:
+                - link "Painting" [ref=e65] [cursor=pointer]:
+                  - /url: /services/painting
+          - generic [ref=e66]:
+            - heading "Company" [level=3] [ref=e67]
+            - list [ref=e68]:
+              - listitem [ref=e69]:
+                - link "About Us" [ref=e70] [cursor=pointer]:
+                  - /url: /about
+              - listitem [ref=e71]:
+                - link "How It Works" [ref=e72] [cursor=pointer]:
+                  - /url: /how-it-works
+              - listitem [ref=e73]:
+                - link "Careers" [ref=e74] [cursor=pointer]:
+                  - /url: /careers
+              - listitem [ref=e75]:
+                - link "Blog" [ref=e76] [cursor=pointer]:
+                  - /url: /blog
+          - generic [ref=e77]:
+            - heading "Support" [level=3] [ref=e78]
+            - list [ref=e79]:
+              - listitem [ref=e80]:
+                - link "Help Center" [ref=e81] [cursor=pointer]:
+                  - /url: /help
+              - listitem [ref=e82]:
+                - link "Contact Us" [ref=e83] [cursor=pointer]:
+                  - /url: /contact
+              - listitem [ref=e84]:
+                - link "FAQs" [ref=e85] [cursor=pointer]:
+                  - /url: /faqs
+              - listitem [ref=e86]:
+                - link "Terms of Service" [ref=e87] [cursor=pointer]:
+                  - /url: /terms
+              - listitem [ref=e88]:
+                - link "Privacy Policy" [ref=e89] [cursor=pointer]:
+                  - /url: /privacy
+        - generic [ref=e91]:
+          - paragraph [ref=e92]: © 2026 SRMS. All rights reserved.
+          - generic [ref=e93]:
+            - link "Facebook" [ref=e94] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e95]
+            - link "Twitter" [ref=e97] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e98]
+            - link "Instagram" [ref=e100] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e101]
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e162] [cursor=pointer]:
+    - img [ref=e163]
+  - alert [ref=e166]

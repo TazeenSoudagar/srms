@@ -6,11 +6,17 @@ export interface Service {
   category: {
     id: string;
     name: string;
+    icon?: string;
   };
   rating?: number;
   reviewCount?: number;
   isPopular?: boolean;
   image?: string;
+  icon?: string;
+  averageDuration?: number;
+  popularityScore?: number;
+  viewCount?: number;
+  isTrending?: boolean;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

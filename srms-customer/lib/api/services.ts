@@ -6,7 +6,7 @@ export const servicesApi = {
    * Get all services with optional filters
    */
   getAll: async (filters?: ServiceFilters): Promise<ApiResponse<Service[]>> => {
-    const response = await apiClient.get<ApiResponse<Service[]>>('/services', {
+    const response = await apiClient.get<ApiResponse<Service[]>>('/public/services', {
       params: filters,
     });
     return response.data;
@@ -20,7 +20,7 @@ export const servicesApi = {
     perPage: number = 12,
     filters?: ServiceFilters
   ): Promise<PaginatedResponse<Service>> => {
-    const response = await apiClient.get<PaginatedResponse<Service>>('/services', {
+    const response = await apiClient.get<PaginatedResponse<Service>>('/public/services', {
       params: {
         page,
         perPage,
@@ -34,7 +34,7 @@ export const servicesApi = {
    * Get service by ID
    */
   getById: async (id: string): Promise<ApiResponse<Service>> => {
-    const response = await apiClient.get<ApiResponse<Service>>(`/services/${id}`);
+    const response = await apiClient.get<ApiResponse<Service>>(`/public/services/${id}`);
     return response.data;
   },
 
@@ -42,7 +42,7 @@ export const servicesApi = {
    * Get featured/popular services
    */
   getFeatured: async (limit: number = 6): Promise<ApiResponse<Service[]>> => {
-    const response = await apiClient.get<ApiResponse<Service[]>>('/services/featured', {
+    const response = await apiClient.get<ApiResponse<Service[]>>('/public/services/featured', {
       params: { limit },
     });
     return response.data;
@@ -52,7 +52,7 @@ export const servicesApi = {
    * Search services by keyword
    */
   search: async (query: string): Promise<ApiResponse<Service[]>> => {
-    const response = await apiClient.get<ApiResponse<Service[]>>('/services/search', {
+    const response = await apiClient.get<ApiResponse<Service[]>>('/public/services/search', {
       params: { q: query },
     });
     return response.data;
@@ -64,7 +64,7 @@ export const categoriesApi = {
    * Get all service categories
    */
   getAll: async (): Promise<ApiResponse<ServiceCategory[]>> => {
-    const response = await apiClient.get<ApiResponse<ServiceCategory[]>>('/categories');
+    const response = await apiClient.get<ApiResponse<ServiceCategory[]>>('/public/categories');
     return response.data;
   },
 
@@ -72,7 +72,7 @@ export const categoriesApi = {
    * Get category by ID
    */
   getById: async (id: string): Promise<ApiResponse<ServiceCategory>> => {
-    const response = await apiClient.get<ApiResponse<ServiceCategory>>(`/categories/${id}`);
+    const response = await apiClient.get<ApiResponse<ServiceCategory>>(`/public/categories/${id}`);
     return response.data;
   },
 
@@ -81,7 +81,7 @@ export const categoriesApi = {
    */
   getServices: async (categoryId: string): Promise<ApiResponse<Service[]>> => {
     const response = await apiClient.get<ApiResponse<Service[]>>(
-      `/categories/${categoryId}/services`
+      `/public/categories/${categoryId}/services`
     );
     return response.data;
   },

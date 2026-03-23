@@ -25,12 +25,12 @@ export const serviceService = {
     per_page?: number
     search?: string
   }): Promise<PaginatedResponse<Service>> => {
-    const response = await api.get('/services', { params })
+    const response = await api.get('/public/services', { params })
     return response.data
   },
 
   getService: async (id: string): Promise<Service> => {
-    const response = await api.get(`/services/${id}`)
+    const response = await api.get(`/public/services/${id}`)
     return response.data.data
   },
 

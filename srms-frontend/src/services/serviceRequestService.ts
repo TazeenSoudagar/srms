@@ -106,7 +106,7 @@ export const serviceRequestService = {
 
 export const serviceService = {
   getServices: async (): Promise<Service[]> => {
-    const response = await api.get('/services')
+    const response = await api.get('/public/services')
     return response.data.data
   },
 }
