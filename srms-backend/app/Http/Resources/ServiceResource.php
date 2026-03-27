@@ -19,6 +19,18 @@ class ServiceResource extends JsonResource
     {
         $hashidsService = app(HashidsService::class);
 
+        // Get the first media image URL (dynamic from media relationship)
+        $imageUrl = null;
+        if ($this->relationLoaded('media')) {
+            $firstMedia = $this->media->first();
+            $imageUrl = $firstMedia?->url;
+        }
+
+        // Fallback to hardcoded icon if no media exists (for backward compatibility)
+        if (! $imageUrl && $this->icon) {
+            $imageUrl = "/images/services/{$this->icon}.jpg";
+        }
+
         return [
             'id' => $hashidsService->encode($this->id),
             'name' => $this->name,
@@ -28,11 +40,12 @@ class ServiceResource extends JsonResource
             'category' => $this->whenLoaded('category', fn () => new CategoryResource($this->category)),
             'rating' => $this->average_rating ?? null,
             'reviewCount' => $this->reviews_count ?? 0,
-            'isPopular' => (bool) $this->is_trending,
+            'isTrending' => (bool) $this->is_trending,
+            'isPopular' => (bool) $this->is_popular,
             'popularityScore' => $this->popularity_score,
             'viewCount' => $this->view_count,
             'icon' => $this->icon,
-            'image' => $this->icon ? "/images/services/{$this->icon}.jpg" : null,
+            'image' => $imageUrl,
             'isActive' => (bool) $this->is_active,
             'createdAt' => $this->created_at?->toISOString(),
             'updatedAt' => $this->updated_at?->toISOString(),

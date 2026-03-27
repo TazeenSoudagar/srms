@@ -26,9 +26,10 @@ class CommentResource extends JsonResource
                 'id' => $hashidsService->encode($this->user->id ?? null),
                 'name' => $this->user ? $this->user->first_name.' '.$this->user->last_name : null,
                 'email' => $this->user->email ?? null,
+                'role' => $this->whenLoaded('user', fn () => $this->user?->role?->name),
             ],
-            'created_at' => $this->created_at?->toISOString(),
-            'updated_at' => $this->updated_at?->toISOString(),
+            'createdAt' => $this->created_at?->toISOString(),
+            'updatedAt' => $this->updated_at?->toISOString(),
         ];
     }
 }

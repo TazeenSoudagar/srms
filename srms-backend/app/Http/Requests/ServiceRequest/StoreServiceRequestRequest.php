@@ -51,7 +51,7 @@ class StoreServiceRequestRequest extends FormRequest
             'service_id' => ['required', 'integer', 'exists:services,id'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
-            'priority' => ['required', 'string', Rule::enum(RequestPriority::class)],
+            'priority' => ['nullable', 'string', Rule::enum(RequestPriority::class)],
             'due_date' => ['nullable', 'date', 'after:today'],
         ];
     }

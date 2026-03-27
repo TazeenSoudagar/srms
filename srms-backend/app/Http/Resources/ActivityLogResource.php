@@ -27,7 +27,7 @@ class ActivityLogResource extends JsonResource
             'details' => $this->details,
             'user' => [
                 'id' => $hashidsService->encode($this->user->id),
-                'name' => $this->user->first_name . ' ' . $this->user->last_name,
+                'name' => $this->user->first_name.' '.$this->user->last_name,
                 'email' => $this->user->email,
                 'role' => $this->user->role->name ?? null,
             ],

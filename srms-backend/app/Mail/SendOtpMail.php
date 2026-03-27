@@ -3,7 +3,6 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -16,10 +15,7 @@ class SendOtpMail extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct(public string $otp)
-    {
-     
-    }
+    public function __construct(public string $otp) {}
 
     /**
      * Get the message envelope.

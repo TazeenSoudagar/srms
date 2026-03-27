@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\ScheduleCreated;
+use App\Events\ScheduleUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreServiceScheduleRequest;
 use App\Http\Requests\UpdateServiceScheduleRequest;
 use App\Http\Resources\ServiceScheduleResource;
 use App\Models\ServiceSchedule;
-use App\Events\ScheduleCreated;
-use App\Events\ScheduleUpdated;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -86,7 +86,7 @@ class ServiceScheduleController extends Controller
     {
         $id = \Vinkla\Hashids\Facades\Hashids::decode($hashedId)[0] ?? null;
 
-        if (!$id) {
+        if (! $id) {
             return response()->json(['message' => 'Invalid schedule ID'], 404);
         }
 
@@ -107,7 +107,7 @@ class ServiceScheduleController extends Controller
     {
         $id = \Vinkla\Hashids\Facades\Hashids::decode($hashedId)[0] ?? null;
 
-        if (!$id) {
+        if (! $id) {
             return response()->json(['message' => 'Invalid schedule ID'], 404);
         }
 
@@ -135,7 +135,7 @@ class ServiceScheduleController extends Controller
     {
         $id = \Vinkla\Hashids\Facades\Hashids::decode($hashedId)[0] ?? null;
 
-        if (!$id) {
+        if (! $id) {
             return response()->json(['message' => 'Invalid schedule ID'], 404);
         }
 
@@ -143,7 +143,7 @@ class ServiceScheduleController extends Controller
 
         Gate::authorize('cancel', $schedule);
 
-        if (!$schedule->isCancellable()) {
+        if (! $schedule->isCancellable()) {
             return response()->json([
                 'message' => 'This schedule cannot be cancelled',
             ], 422);
@@ -171,7 +171,7 @@ class ServiceScheduleController extends Controller
     {
         $id = \Vinkla\Hashids\Facades\Hashids::decode($hashedId)[0] ?? null;
 
-        if (!$id) {
+        if (! $id) {
             return response()->json(['message' => 'Invalid schedule ID'], 404);
         }
 
@@ -210,7 +210,7 @@ class ServiceScheduleController extends Controller
 
         // Get existing schedules for the date
         $existingSchedules = ServiceSchedule::whereDate('scheduled_at', $date)
-            ->when($engineerId, fn($q) => $q->forEngineer($engineerId))
+            ->when($engineerId, fn ($q) => $q->forEngineer($engineerId))
             ->whereIn('status', ['confirmed', 'in_progress'])
             ->get(['scheduled_at', 'estimated_duration_minutes']);
 
@@ -223,7 +223,7 @@ class ServiceScheduleController extends Controller
             $slotTime = \Carbon\Carbon::parse($date)->setTime($hour, 0);
 
             // Check if slot is available
-            $isAvailable = !$existingSchedules->contains(function ($schedule) use ($slotTime) {
+            $isAvailable = ! $existingSchedules->contains(function ($schedule) use ($slotTime) {
                 $scheduleStart = $schedule->scheduled_at;
                 $scheduleEnd = $scheduleStart->copy()->addMinutes($schedule->estimated_duration_minutes ?? 60);
 

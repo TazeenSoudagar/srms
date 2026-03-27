@@ -7,10 +7,6 @@ use App\Models\User;
 
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\assertDatabaseHas;
-use function Pest\Laravel\deleteJson;
-use function Pest\Laravel\getJson;
-use function Pest\Laravel\postJson;
-use function Pest\Laravel\putJson;
 
 beforeEach(function () {
     $this->seed(\Database\Seeders\RoleSeeder::class);
@@ -213,6 +209,6 @@ test('admin can filter users by role', function () {
     $response->assertOk();
     // Check at least some clients are returned
     $data = $response->json('data');
-    $clients = collect($data)->filter(fn($user) => $user['role']['name'] === 'Client');
+    $clients = collect($data)->filter(fn ($user) => $user['role']['name'] === 'Client');
     expect($clients->count())->toBeGreaterThanOrEqual(3);
 });

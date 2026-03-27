@@ -33,7 +33,7 @@ class ActivityLogController extends Controller
                 case 'week':
                     $query->whereBetween('created_at', [
                         $now->startOfWeek()->toDateTimeString(),
-                        $now->endOfWeek()->toDateTimeString()
+                        $now->endOfWeek()->toDateTimeString(),
                     ]);
                     break;
                 case 'month':
@@ -90,8 +90,8 @@ class ActivityLogController extends Controller
                         ->orWhere('last_name', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%");
                 })
-                ->orWhere('action', 'like', "%{$search}%")
-                ->orWhereJsonContains('details', $search);
+                    ->orWhere('action', 'like', "%{$search}%")
+                    ->orWhereJsonContains('details', $search);
             });
         }
 

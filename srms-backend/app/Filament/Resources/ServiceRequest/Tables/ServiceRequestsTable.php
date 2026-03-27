@@ -9,8 +9,8 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -50,12 +50,12 @@ class ServiceRequestsTable
                     ->sortable(),
                 TextColumn::make('createdBy.first_name')
                     ->label('Created By')
-                    ->formatStateUsing(fn($record) => $record->createdBy ? $record->createdBy->first_name . ' ' . $record->createdBy->last_name : '-')
+                    ->formatStateUsing(fn ($record) => $record->createdBy ? $record->createdBy->first_name.' '.$record->createdBy->last_name : '-')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('assignedTo.first_name')
                     ->label('Assigned To')
-                    ->formatStateUsing(fn($record) => $record->assignedTo ? $record->assignedTo->first_name . ' ' . $record->assignedTo->last_name : '-')
+                    ->formatStateUsing(fn ($record) => $record->assignedTo ? $record->assignedTo->first_name.' '.$record->assignedTo->last_name : '-')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('due_date')
@@ -82,7 +82,7 @@ class ServiceRequestsTable
                     ->label('Service')
                     ->multiple(),
                 SelectFilter::make('assigned_to')
-                    ->relationship('assignedTo', 'first_name', fn($query) => $query->whereHas('role', fn($q) => $q->where('name', 'Support Engineer')))
+                    ->relationship('assignedTo', 'first_name', fn ($query) => $query->whereHas('role', fn ($q) => $q->where('name', 'Support Engineer')))
                     ->label('Assigned Engineer')
                     ->multiple(),
                 Filter::make('created_at')
@@ -96,11 +96,11 @@ class ServiceRequestsTable
                         return $query
                             ->when(
                                 $data['created_from'],
-                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
                             )
                             ->when(
                                 $data['created_until'],
-                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
                             );
                     }),
             ])

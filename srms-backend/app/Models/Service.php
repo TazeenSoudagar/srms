@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Service extends Model
 {
@@ -25,11 +26,13 @@ class Service extends Model
         'popularity_score',
         'view_count',
         'is_trending',
+        'is_popular',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'is_trending' => 'boolean',
+        'is_popular' => 'boolean',
         'average_duration_minutes' => 'integer',
         'base_price' => 'decimal:2',
         'popularity_score' => 'integer',
@@ -54,6 +57,14 @@ class Service extends Model
     }
 
     /**
+     * Get the media files for the service.
+     */
+    public function media(): MorphMany
+    {
+        return $this->morphMany(Media::class, 'mediaable');
+    }
+
+    /**
      * Scope a query to only include active services.
      */
     public function scopeActive($query)
@@ -71,6 +82,14 @@ class Service extends Model
     }
 
     /**
+     * Scope a query to only include popular services.
+     */
+    public function scopePopular($query)
+    {
+        return $query->where('is_popular', true);
+    }
+
+    /**
      * Scope a query to filter by category.
      */
     public function scopeByCategory($query, $categoryId)
@@ -81,8 +100,6 @@ class Service extends Model
     /**
      * Get the average rating for this service.
      * Returns null until reviews system is implemented.
-     *
-     * @return float|null
      */
     public function getAverageRatingAttribute(): ?float
     {
@@ -94,8 +111,6 @@ class Service extends Model
     /**
      * Get the count of reviews for this service.
      * Returns 0 until reviews system is implemented.
-     *
-     * @return int
      */
     public function getReviewsCountAttribute(): int
     {

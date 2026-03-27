@@ -41,7 +41,7 @@ class AuthResource extends JsonResource
                 'avatar' => $this->avatar ? [
                     'id' => $hashidsService->encode($this->avatar->id),
                     'name' => $this->avatar->name,
-                    'url' => config('app.url') . Storage::url($this->avatar->url),
+                    'url' => config('app.url').Storage::url($this->avatar->url),
                 ] : null,
                 'role' => [
                     'id' => $this->role->id ?? null,

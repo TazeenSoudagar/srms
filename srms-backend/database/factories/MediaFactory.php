@@ -20,8 +20,8 @@ class MediaFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->word() . '.' . fake()->fileExtension(),
-            'url' => '/storage/' . fake()->filePath(),
+            'name' => fake()->word().'.'.fake()->fileExtension(),
+            'url' => '/storage/'.fake()->filePath(),
             'mediaable_id' => ServiceRequest::factory(),
             'mediaable_type' => ServiceRequest::class,
         ];

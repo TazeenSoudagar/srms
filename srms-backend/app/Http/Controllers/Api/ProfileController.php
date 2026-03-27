@@ -82,7 +82,7 @@ class ProfileController extends Controller
 
         // Store new avatar
         $file = $request->file('avatar');
-        $fileName = 'avatar_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+        $fileName = 'avatar_'.$user->id.'_'.time().'.'.$file->getClientOriginalExtension();
         $filePath = $file->storeAs('avatars', $fileName, 'public');
 
         // Create media record
@@ -98,7 +98,7 @@ class ProfileController extends Controller
             'avatar' => [
                 'id' => $hashidsService->encode($media->id),
                 'name' => $media->name,
-                'url' => config('app.url') . Storage::url($media->url),
+                'url' => config('app.url').Storage::url($media->url),
             ],
         ], 200);
     }

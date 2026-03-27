@@ -53,12 +53,13 @@ class GeoService
             );
 
             $engineer->distance = $distance;
+
             return $engineer;
         })
-        ->filter(function ($engineer) use ($radiusKm) {
-            return $engineer->distance <= $radiusKm;
-        })
-        ->sortBy('distance')
-        ->values();
+            ->filter(function ($engineer) use ($radiusKm) {
+                return $engineer->distance <= $radiusKm;
+            })
+            ->sortBy('distance')
+            ->values();
     }
 }

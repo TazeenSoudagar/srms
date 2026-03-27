@@ -10,9 +10,11 @@ use Illuminate\Database\Eloquent\Model;
 class Media extends Model
 {
     use HasHashidsRouteBinding;
+
     protected $fillable = [
         'name',
         'url',
+        'path',
         'mediaable_id',
         'mediaable_type',
     ];

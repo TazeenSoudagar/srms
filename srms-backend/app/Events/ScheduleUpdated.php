@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Events;
 
 use App\Models\ServiceSchedule;
@@ -31,9 +30,9 @@ class ScheduleUpdated implements ShouldBroadcast
     {
         return [
             new Channel('schedules'),
-            new Channel('user.' . $this->schedule->customer_id),
+            new Channel('user.'.$this->schedule->customer_id),
             $this->schedule->engineer_id
-                ? new Channel('user.' . $this->schedule->engineer_id)
+                ? new Channel('user.'.$this->schedule->engineer_id)
                 : null,
         ];
     }
@@ -56,9 +55,9 @@ class ScheduleUpdated implements ShouldBroadcast
                 'id' => $this->schedule->hashed_id,
                 'scheduled_at' => $this->schedule->scheduled_at->toIso8601String(),
                 'status' => $this->schedule->status,
-                'customer_name' => $this->schedule->customer->first_name . ' ' . $this->schedule->customer->last_name,
+                'customer_name' => $this->schedule->customer->first_name.' '.$this->schedule->customer->last_name,
                 'engineer_name' => $this->schedule->engineer
-                    ? $this->schedule->engineer->first_name . ' ' . $this->schedule->engineer->last_name
+                    ? $this->schedule->engineer->first_name.' '.$this->schedule->engineer->last_name
                     : null,
             ],
             'message' => 'Schedule has been updated',

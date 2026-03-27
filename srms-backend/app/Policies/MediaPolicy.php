@@ -46,14 +46,27 @@ class MediaPolicy
 
     /**
      * Determine whether the user can delete the model.
-     * User must have access to the related service request.
+     * Only the request creator (customer) can delete media.
+     * Admin can also delete media.
      */
-    public function delete(User $user, Media $media): bool
+    public function delete(User $user, Media $media, ?ServiceRequest $serviceRequest = null): bool
     {
+        // If service request is provided directly, use it
+        if ($serviceRequest) {
+            $isAdmin = $user->role && strtolower($user->role->name) === 'admin';
+            $isCreator = $serviceRequest->created_by === $user->id;
+
+            return $isAdmin || $isCreator;
+        }
+
+        // Otherwise, load it from the media relationship
         if ($media->mediaable_type === ServiceRequest::class) {
             $serviceRequest = ServiceRequest::find($media->mediaable_id);
             if ($serviceRequest) {
-                return $user->can('view', $serviceRequest);
+                $isAdmin = $user->role && strtolower($user->role->name) === 'admin';
+                $isCreator = $serviceRequest->created_by === $user->id;
+
+                return $isAdmin || $isCreator;
             }
         }
 

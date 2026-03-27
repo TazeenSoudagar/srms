@@ -4,7 +4,6 @@ namespace App\Mail;
 
 use App\Models\User;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -20,8 +19,7 @@ class WelcomeUserMail extends Mailable
     public function __construct(
         public User $user,
         public string $password
-    ) {
-    }
+    ) {}
 
     /**
      * Get the message envelope.
@@ -43,7 +41,7 @@ class WelcomeUserMail extends Mailable
             with: [
                 'user' => $this->user,
                 'password' => $this->password,
-                'loginUrl' => config('app.frontend_url') . '/login',
+                'loginUrl' => config('app.frontend_url').'/login',
             ],
         );
     }

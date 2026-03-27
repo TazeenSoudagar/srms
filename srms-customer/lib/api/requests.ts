@@ -1,13 +1,13 @@
-import { apiClient, ApiResponse, PaginatedResponse } from './client';
+import { ApiResponse, PaginatedResponse, apiClient } from './client';
 import {
-  ServiceRequest,
-  CreateServiceRequestDto,
-  UpdateServiceRequestDto,
   CancelServiceRequestDto,
   Comment,
   CreateCommentDto,
+  CreateServiceRequestDto,
   Media,
+  ServiceRequest,
   ServiceRequestFilters,
+  UpdateServiceRequestDto,
 } from '../types/request';
 
 export const serviceRequestsApi = {
@@ -85,7 +85,7 @@ export const serviceRequestsApi = {
     data: CancelServiceRequestDto
   ): Promise<ApiResponse<ServiceRequest>> => {
     const response = await apiClient.post<ApiResponse<ServiceRequest>>(
-      `/service-requests/${id}/cancel`,
+      `/service-requests/${id}/close`,
       data
     );
     return response.data;

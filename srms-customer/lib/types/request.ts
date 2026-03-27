@@ -1,91 +1,92 @@
+// Backend returns snake_case fields - aligned with Laravel API Resources
+
 export type ServiceRequestStatus =
-  | 'pending'
-  | 'confirmed'
+  | 'open'
   | 'in_progress'
-  | 'completed'
+  | 'closed'
   | 'cancelled';
+
+export type ServiceRequestPriority = 'low' | 'medium' | 'high';
 
 export interface ServiceRequest {
   id: string;
+  request_number: string;
   title: string;
   description: string;
   status: ServiceRequestStatus;
+  priority?: ServiceRequestPriority;
   service: {
     id: string;
     name: string;
   };
-  user: {
+  created_by?: {
     id: string;
-    firstName: string;
-    lastName: string;
-    phone: string;
+    first_name: string;
+    last_name: string;
+    phone?: string;
+    email?: string;
   };
-  assignedTo?: {
+  assigned_to?: {
     id: string;
-    firstName: string;
-    lastName: string;
+    first_name: string;
+    last_name: string;
+    email?: string;
   };
-  scheduledAt?: string;
-  completedAt?: string;
-  cancelledAt?: string;
-  cancellationReason?: string;
-  address: string;
-  totalAmount: number;
-  createdAt: string;
-  updatedAt: string;
+  due_date?: string;
+  closed_at?: string;
+  is_active: boolean;
+  comments_count?: number;
+  media_count?: number;
+  created_at: string;
+  updated_at: string;
+  // Legacy compat fields (some pages use these)
+  scheduledDate?: string;
+  address?: string;
+  totalAmount?: number;
 }
 
 export interface CreateServiceRequestDto {
-  serviceId: string;
+  service_id: string;
   title: string;
   description: string;
-  address: string;
-  scheduledAt?: string;
 }
 
 export interface UpdateServiceRequestDto {
   title?: string;
   description?: string;
-  address?: string;
-  scheduledAt?: string;
 }
 
 export interface CancelServiceRequestDto {
-  reason: string;
+  reason?: string;
 }
 
 export interface Comment {
   id: string;
-  content: string;
+  body: string;
   user: {
     id: string;
-    firstName: string;
-    lastName: string;
-    avatar?: string;
+    name: string;
+    email?: string;
   };
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CreateCommentDto {
-  content: string;
+  body: string;
 }
 
 export interface Media {
   id: string;
-  filename: string;
+  name: string;
   url: string;
-  mimeType: string;
-  size: number;
-  createdAt: string;
+  created_at?: string;
 }
 
 export interface ServiceRequestFilters {
   status?: ServiceRequestStatus;
-  serviceId?: string;
+  service_id?: string;
   search?: string;
-  startDate?: string;
-  endDate?: string;
-  sortBy?: 'createdAt' | 'scheduledAt' | 'updatedAt';
-  sortOrder?: 'asc' | 'desc';
+  sort_by?: 'created_at' | 'updated_at';
+  sort_order?: 'asc' | 'desc';
 }

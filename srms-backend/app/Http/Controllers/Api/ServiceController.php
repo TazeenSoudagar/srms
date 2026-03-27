@@ -25,7 +25,7 @@ class ServiceController extends Controller
         // Allow public access for browsing, but check auth for admin filters
         $isAdmin = Auth::check() && Auth::user()->can('viewAny', Service::class);
 
-        $query = Service::with('category')->where('is_active', true);
+        $query = Service::with(['category', 'media'])->where('is_active', true);
 
         // Filter by category
         if ($request->has('categoryId')) {
@@ -91,7 +91,7 @@ class ServiceController extends Controller
     {
         $limit = min((int) ($request->limit ?? 6), 20);
 
-        $services = Service::with('category')
+        $services = Service::with(['category', 'media'])
             ->where('is_active', true)
             ->where('is_trending', true)
             ->orderBy('popularity_score', 'desc')
@@ -108,7 +108,7 @@ class ServiceController extends Controller
     {
         $query = $request->input('q', '');
 
-        $services = Service::with('category')
+        $services = Service::with(['category', 'media'])
             ->where('is_active', true)
             ->where(function ($q) use ($query) {
                 $q->where('name', 'like', "%{$query}%")
@@ -126,9 +126,24 @@ class ServiceController extends Controller
      */
     public function trending(): AnonymousResourceCollection
     {
-        $services = Service::with('category')
+        $services = Service::with(['category', 'media'])
             ->trending()
             ->limit(10)
+            ->get();
+
+        return ServiceResource::collection($services);
+    }
+
+    /**
+     * Get popular services.
+     */
+    public function popular(): AnonymousResourceCollection
+    {
+        $services = Service::with(['category', 'media'])
+            ->where('is_active', true)
+            ->where('is_popular', true)
+            ->orderBy('popularity_score', 'desc')
+            ->limit(6)
             ->get();
 
         return ServiceResource::collection($services);
@@ -163,7 +178,7 @@ class ServiceController extends Controller
     public function show(Service $service): ServiceResource
     {
         // Allow public access to view services
-        $service->load('category');
+        $service->load(['category', 'media']);
         $service->increment('view_count');
 
         return new ServiceResource($service);

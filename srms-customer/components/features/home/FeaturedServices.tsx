@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, Star } from "lucide-react";
@@ -9,63 +9,32 @@ import Card from "@/components/common/Card";
 import Button from "@/components/common/Button";
 import Badge from "@/components/common/Badge";
 import { formatPrice } from "@/lib/utils/format";
+import { servicesApi } from "@/lib/api/services";
+import { Service } from "@/lib/types/service";
 
 export default function FeaturedServices() {
   const [scrollPosition, setScrollPosition] = useState(0);
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock data - will be replaced with API call
-  const services = [
-    {
-      id: "1",
-      name: "Deep Home Cleaning",
-      description: "Complete home cleaning with professional equipment",
-      basePrice: 1499,
-      rating: 4.8,
-      reviewCount: 234,
-      isPopular: true,
-      image: "/images/services/deep-home-cleaning.jpg",
-    },
-    {
-      id: "2",
-      name: "Plumbing Repair",
-      description: "Expert plumbers for all your plumbing needs",
-      basePrice: 299,
-      rating: 4.9,
-      reviewCount: 189,
-      isPopular: true,
-      image: "/images/services/plumbing-repair.jpg",
-    },
-    {
-      id: "3",
-      name: "Electrical Services",
-      description: "Licensed electricians for safe installations",
-      basePrice: 399,
-      rating: 4.7,
-      reviewCount: 156,
-      isPopular: false,
-      image: "/images/services/electrical-services.jpg",
-    },
-    {
-      id: "4",
-      name: "AC Repair & Service",
-      description: "AC installation, repair and maintenance",
-      basePrice: 499,
-      rating: 4.8,
-      reviewCount: 203,
-      isPopular: true,
-      image: "/images/services/ac-repair.jpg",
-    },
-    {
-      id: "5",
-      name: "Painting Services",
-      description: "Interior and exterior painting by experts",
-      basePrice: 2999,
-      rating: 4.6,
-      reviewCount: 124,
-      isPopular: false,
-      image: "/images/services/painting-services.jpg",
-    },
-  ];
+  useEffect(() => {
+    const fetchFeaturedServices = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await servicesApi.getFeatured(6);
+        setServices(response.data);
+      } catch (err) {
+        console.error("Failed to fetch featured services:", err);
+        setError("Failed to load featured services. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeaturedServices();
+  }, []);
 
   return (
     <section className="py-16 md:py-20 bg-white">
@@ -82,70 +51,122 @@ export default function FeaturedServices() {
           </Link>
         </div>
 
-        {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {services.slice(0, 6).map((service) => (
-            <Link key={service.id} href={`/services/${service.id}`}>
-              <Card variant="default" hoverable padding="none" className="h-full overflow-hidden">
-                {/* Service Image */}
-                <div className="relative h-48 w-full overflow-hidden">
-                  <Image
-                    src={service.image}
-                    alt={service.name}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  />
-                  {service.isPopular && (
-                    <div className="absolute top-3 right-3">
-                      <Badge variant="warning" size="sm">
-                        Popular
-                      </Badge>
+        {/* Loading State */}
+        {loading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, index) => (
+              <Card key={index} variant="default" padding="none" className="h-full overflow-hidden">
+                <div className="animate-pulse">
+                  <div className="h-48 bg-neutral-200" />
+                  <div className="p-6">
+                    <div className="h-6 bg-neutral-200 rounded mb-2" />
+                    <div className="h-4 bg-neutral-200 rounded mb-4 w-3/4" />
+                    <div className="h-4 bg-neutral-200 rounded mb-4 w-1/2" />
+                    <div className="flex justify-between items-center">
+                      <div className="h-8 bg-neutral-200 rounded w-24" />
+                      <div className="h-9 bg-neutral-200 rounded w-24" />
                     </div>
-                  )}
-                </div>
-
-                {/* Service Info */}
-                <div className="p-6">
-                  <h4 className="text-lg font-semibold text-neutral-900 mb-2">
-                    {service.name}
-                  </h4>
-                  <p className="text-sm text-neutral-600 mb-4 line-clamp-2">
-                    {service.description}
-                  </p>
-
-                  {/* Rating */}
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                      <span className="font-medium text-neutral-900">
-                        {service.rating}
-                      </span>
-                    </div>
-                    <span className="text-sm text-neutral-500">
-                      ({service.reviewCount} reviews)
-                    </span>
-                  </div>
-
-                  {/* Price */}
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-sm text-neutral-600">
-                        Starting at
-                      </span>
-                      <div className="text-xl font-bold text-primary-600">
-                        {formatPrice(service.basePrice)}
-                      </div>
-                    </div>
-                    <Button variant="primary" size="sm">
-                      Book Now
-                    </Button>
                   </div>
                 </div>
               </Card>
-            </Link>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <div className="text-center py-12">
+            <p className="text-red-600 mb-4">{error}</p>
+            <Button
+              variant="primary"
+              onClick={() => window.location.reload()}
+            >
+              Try Again
+            </Button>
+          </div>
+        )}
+
+        {/* Services Grid */}
+        {!loading && !error && services.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {services.map((service) => (
+              <Link key={service.id} href={`/services/${service.id}`}>
+                <Card variant="default" hoverable padding="none" className="h-full overflow-hidden">
+                  {/* Service Image */}
+                  <div className="relative h-48 w-full overflow-hidden bg-neutral-200">
+                    {service.image && (
+                      <Image
+                        src={service.image}
+                        alt={service.name}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      />
+                    )}
+                    {service.isPopular && (
+                      <div className="absolute top-3 right-3">
+                        <Badge variant="warning" size="sm">
+                          Popular
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Service Info */}
+                  <div className="p-6">
+                    <h4 className="text-lg font-semibold text-neutral-900 mb-2">
+                      {service.name}
+                    </h4>
+                    <p className="text-sm text-neutral-600 mb-4 line-clamp-2">
+                      {service.description}
+                    </p>
+
+                    {/* Rating */}
+                    {(service.rating || service.reviewCount) && (
+                      <div className="flex items-center gap-2 mb-4">
+                        {service.rating && (
+                          <div className="flex items-center gap-1">
+                            <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                            <span className="font-medium text-neutral-900">
+                              {service.rating.toFixed(1)}
+                            </span>
+                          </div>
+                        )}
+                        {service.reviewCount && (
+                          <span className="text-sm text-neutral-500">
+                            ({service.reviewCount} reviews)
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Price */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-sm text-neutral-600">
+                          Starting at
+                        </span>
+                        <div className="text-xl font-bold text-primary-600">
+                          {formatPrice(service.basePrice)}
+                        </div>
+                      </div>
+                      <Button variant="primary" size="sm">
+                        Book Now
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!loading && !error && services.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-neutral-600">No featured services available at the moment.</p>
+          </div>
+        )}
       </Container>
     </section>
   );
