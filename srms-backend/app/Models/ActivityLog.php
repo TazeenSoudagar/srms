@@ -58,7 +58,6 @@ class ActivityLog extends Model
      * @param  string  $action  The action being performed (e.g., 'created', 'updated')
      * @param  Model  $loggable  The model being acted upon
      * @param  array<string, mixed>  $details  Additional context data
-     * @return self
      */
     public static function log(User $user, string $action, Model $loggable, array $details = []): self
     {

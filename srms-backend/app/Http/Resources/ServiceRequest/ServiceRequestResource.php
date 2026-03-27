@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\ServiceRequest;
 
+use App\Http\Resources\CommentResource;
 use App\Http\Resources\ServiceResource;
 use App\Http\Resources\UserResource;
 use App\Services\HashidsService;
@@ -35,6 +36,7 @@ class ServiceRequestResource extends JsonResource
             'due_date' => $this->due_date?->toDateString(),
             'closed_at' => $this->closed_at?->toISOString(),
             'is_active' => $this->is_active,
+            'comments' => CommentResource::collection($this->whenLoaded('comments')),
             'comments_count' => $this->when(isset($this->comments_count), $this->comments_count),
             'media_count' => $this->when(isset($this->media_count), $this->media_count),
             'created_at' => $this->created_at?->toISOString(),

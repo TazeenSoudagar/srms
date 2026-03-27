@@ -16,7 +16,6 @@ class ActivityLogService
      * @param  User  $user  The user performing the action
      * @param  Model  $loggable  The model being created
      * @param  array<string, mixed>  $details  Additional context data
-     * @return ActivityLog
      */
     public static function logCreated(User $user, Model $loggable, array $details = []): ActivityLog
     {
@@ -29,7 +28,6 @@ class ActivityLogService
      * @param  User  $user  The user performing the action
      * @param  Model  $loggable  The model being updated
      * @param  array<string, mixed>  $details  Additional context data (e.g., changed fields)
-     * @return ActivityLog
      */
     public static function logUpdated(User $user, Model $loggable, array $details = []): ActivityLog
     {
@@ -43,7 +41,6 @@ class ActivityLogService
      * @param  Model  $loggable  The model being assigned
      * @param  User  $assignedTo  The user being assigned to
      * @param  array<string, mixed>  $details  Additional context data
-     * @return ActivityLog
      */
     public static function logAssigned(User $user, Model $loggable, User $assignedTo, array $details = []): ActivityLog
     {
@@ -61,7 +58,6 @@ class ActivityLogService
      * @param  string  $oldStatus  The previous status
      * @param  string  $newStatus  The new status
      * @param  array<string, mixed>  $details  Additional context data
-     * @return ActivityLog
      */
     public static function logStatusChanged(User $user, Model $loggable, string $oldStatus, string $newStatus, array $details = []): ActivityLog
     {
@@ -77,7 +73,6 @@ class ActivityLogService
      * @param  User  $user  The user performing the action
      * @param  Model  $loggable  The model being closed
      * @param  array<string, mixed>  $details  Additional context data
-     * @return ActivityLog
      */
     public static function logClosed(User $user, Model $loggable, array $details = []): ActivityLog
     {
@@ -90,7 +85,6 @@ class ActivityLogService
      * @param  User  $user  The user performing the action
      * @param  Model  $loggable  The model being deleted
      * @param  array<string, mixed>  $details  Additional context data
-     * @return ActivityLog
      */
     public static function logDeleted(User $user, Model $loggable, array $details = []): ActivityLog
     {

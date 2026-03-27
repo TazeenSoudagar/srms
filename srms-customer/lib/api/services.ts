@@ -49,6 +49,16 @@ export const servicesApi = {
   },
 
   /**
+   * Get popular services for homepage
+   */
+  getPopularServices: async (limit: number = 6): Promise<ApiResponse<Service[]>> => {
+    const response = await apiClient.get<ApiResponse<Service[]>>('/public/services/popular', {
+      params: { limit },
+    });
+    return response.data;
+  },
+
+  /**
    * Search services by keyword
    */
   search: async (query: string): Promise<ApiResponse<Service[]>> => {

@@ -16,7 +16,7 @@ class EditServiceRequest extends EditRecord
         $data['updated_by'] = auth()->id();
 
         // If status is closed, set closed_at
-        if (($data['status'] ?? $this->record->status) === 'closed' && !$this->record->closed_at) {
+        if (($data['status'] ?? $this->record->status) === 'closed' && ! $this->record->closed_at) {
             $data['closed_at'] = now();
         }
 

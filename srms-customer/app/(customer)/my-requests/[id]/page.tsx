@@ -22,6 +22,7 @@ import {
   AlertCircle,
   ChevronRight,
 } from "lucide-react";
+import { toast } from "sonner";
 import Container from "@/components/layout/Container";
 import Card from "@/components/common/Card";
 import Button from "@/components/common/Button";
@@ -34,6 +35,7 @@ import {
   Media,
 } from "@/lib/types/request";
 import { useAuth } from "@/contexts/AuthContext";
+import { formatRelativeTime } from "@/lib/utils/format";
 
 // ─── Status Config ────────────────────────────────────────────────────────────
 
@@ -59,6 +61,12 @@ const statusConfig: Record<
     color: "text-green-700",
     bgColor: "bg-green-100",
   },
+  cancelled: {
+    label: "Cancelled",
+    icon: XCircle,
+    color: "text-red-700",
+    bgColor: "bg-red-100",
+  },
 };
 
 const timelineSteps: { status: ServiceRequestStatus; label: string }[] = [
@@ -70,7 +78,8 @@ const timelineSteps: { status: ServiceRequestStatus; label: string }[] = [
 // ─── Timeline Component ───────────────────────────────────────────────────────
 
 function StatusTimeline({ currentStatus }: { currentStatus: ServiceRequestStatus }) {
-  const isCancelled = currentStatus === "closed";
+  const isCancelled = currentStatus === "cancelled";
+  const isClosed = currentStatus === "closed";
   const currentIndex = timelineSteps.findIndex((s) => s.status === currentStatus);
 
   return (
@@ -81,6 +90,14 @@ function StatusTimeline({ currentStatus }: { currentStatus: ServiceRequestStatus
           <div>
             <p className="font-semibold text-red-700">Request Cancelled</p>
             <p className="text-sm text-red-600">This service request has been cancelled.</p>
+          </div>
+        </div>
+      ) : isClosed ? (
+        <div className="flex items-center gap-3 p-4 bg-green-50 rounded-xl border border-green-200">
+          <CheckCircle2 className="h-6 w-6 text-green-500 flex-shrink-0" />
+          <div>
+            <p className="font-semibold text-green-700">Request Closed</p>
+            <p className="text-sm text-green-600">This service request has been completed and closed.</p>
           </div>
         </div>
       ) : (
@@ -163,7 +180,7 @@ function CommentItem({
             {comment.user?.name || "Unknown"}
           </span>
           <span className="text-xs text-neutral-400">
-            {new Date(comment.created_at).toLocaleString()}
+            {formatRelativeTime(comment.createdAt)}
           </span>
         </div>
         <div
@@ -193,11 +210,13 @@ function CommentItem({
 function MediaItem({
   media,
   onDelete,
+  canDelete,
 }: {
   media: Media;
   onDelete: (id: string) => void;
+  canDelete: boolean;
 }) {
-  const isImage = media.mimeType?.startsWith("image/") || /\.(jpg|jpeg|png|gif|webp)$/i.test(media.filename);
+  const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(media.name);
 
   return (
     <div className="group relative flex items-center gap-3 p-3 bg-neutral-50 rounded-xl border border-neutral-200 hover:border-primary-300 hover:bg-primary-50 transition-all">
@@ -210,13 +229,8 @@ function MediaItem({
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-neutral-800 truncate">
-          {media.filename}
+          {media.name}
         </p>
-        {media.size && (
-          <p className="text-xs text-neutral-400">
-            {(media.size / 1024).toFixed(1)} KB
-          </p>
-        )}
       </div>
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <a
@@ -228,13 +242,15 @@ function MediaItem({
         >
           <Download className="h-4 w-4" />
         </a>
-        <button
-          onClick={() => onDelete(media.id)}
-          className="p-1.5 rounded-lg hover:bg-white text-neutral-500 hover:text-red-500 transition-colors"
-          title="Delete"
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
+        {canDelete && (
+          <button
+            onClick={() => onDelete(media.id)}
+            className="p-1.5 rounded-lg hover:bg-white text-neutral-500 hover:text-red-500 transition-colors"
+            title="Delete"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
       </div>
     </div>
   );
@@ -278,14 +294,16 @@ export default function RequestDetailPage() {
     try {
       setLoading(true);
       setError(null);
-      const [reqRes, commentsRes, mediaRes] = await Promise.all([
+      const [reqRes, commentsRes] = await Promise.all([
         serviceRequestsApi.getById(requestId),
         commentsApi.getAll(requestId),
-        mediaApi.getAll(requestId),
       ]);
       setRequest(reqRes.data);
       setComments(commentsRes.data || []);
-      setMedia(mediaRes.data || []);
+      // Load media separately so a failure doesn't block the main view
+      mediaApi.getAll(requestId)
+        .then((res) => setMedia(res.data || []))
+        .catch(() => setMedia([]));
     } catch (err: unknown) {
       console.error("Error fetching request details:", err);
       setError("Failed to load request details. Please try again.");
@@ -295,6 +313,11 @@ export default function RequestDetailPage() {
   };
 
   const handleAddComment = async () => {
+    if (isRequestClosed) {
+      toast.error(`Cannot add comments. Request has been ${request.status}.`);
+      return;
+    }
+
     if (!commentText.trim() || submittingComment) return;
     try {
       setSubmittingComment(true);
@@ -318,6 +341,14 @@ export default function RequestDetailPage() {
     }
   };
 
+  const handleAttachClick = () => {
+    if (isRequestClosed) {
+      toast.error(`Cannot upload files. Request has been ${request.status}.`);
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -334,11 +365,22 @@ export default function RequestDetailPage() {
   };
 
   const handleDeleteMedia = async (mediaId: string) => {
+    // Show confirmation dialog
+    if (!confirm("Are you sure you want to delete this attachment?")) {
+      return;
+    }
+
     try {
       await mediaApi.delete(requestId, mediaId);
       setMedia((prev) => prev.filter((m) => m.id !== mediaId));
-    } catch (err) {
+      toast.success("Attachment deleted successfully");
+    } catch (err: any) {
       console.error("Error deleting media:", err);
+      if (err.response?.status === 403) {
+        toast.error("Cannot delete attachments. Request is already in progress or closed.");
+      } else {
+        toast.error(err.response?.data?.message || "Failed to delete attachment");
+      }
     }
   };
 
@@ -394,6 +436,8 @@ export default function RequestDetailPage() {
   const statusInfo = statusConfig[request.status] || statusConfig.open;
   const StatusIcon = statusInfo.icon;
   const canCancel = request.status === "open";
+  const canDeleteAttachments = request.status === "open";
+  const isRequestClosed = request.status === "closed" || request.status === "cancelled";
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -530,40 +574,52 @@ export default function RequestDetailPage() {
                         <p className="text-sm">No comments yet. Start the conversation.</p>
                       </div>
                     ) : (
-                      comments.map((comment) => (
-                        <CommentItem
-                          key={comment.id}
-                          comment={comment}
-                          currentUserId={user?.id}
-                          onDelete={handleDeleteComment}
-                        />
-                      ))
+                      [...comments]
+                        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+                        .map((comment) => (
+                          <CommentItem
+                            key={comment.id}
+                            comment={comment}
+                            currentUserId={user?.id}
+                            onDelete={handleDeleteComment}
+                          />
+                        ))
                     )}
                     <div ref={commentsEndRef} />
                   </div>
 
                   {/* Comment Input */}
-                  <div className="flex gap-2 pt-4 border-t border-neutral-100">
-                    <input
-                      type="text"
-                      value={commentText}
-                      onChange={(e) => setCommentText(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleAddComment()}
-                      placeholder="Write a comment..."
-                      className="flex-1 px-4 py-2.5 rounded-xl border border-neutral-200 bg-neutral-50 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent"
-                    />
-                    <Button
-                      onClick={handleAddComment}
-                      disabled={!commentText.trim() || submittingComment}
-                      size="sm"
-                      className="px-4"
-                    >
-                      {submittingComment ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Send className="h-4 w-4" />
-                      )}
-                    </Button>
+                  <div className="pt-4 border-t border-neutral-100">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleAddComment()}
+                        placeholder={isRequestClosed ? "Comments are disabled for closed requests" : "Write a comment..."}
+                        disabled={isRequestClosed}
+                        className={`flex-1 px-4 py-2.5 rounded-xl border border-neutral-200 bg-neutral-50 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent ${
+                          isRequestClosed ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
+                      />
+                      <Button
+                        onClick={handleAddComment}
+                        disabled={isRequestClosed || !commentText.trim() || submittingComment}
+                        size="sm"
+                        className={`px-4 ${isRequestClosed ? "opacity-50 cursor-not-allowed" : ""}`}
+                      >
+                        {submittingComment ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Send className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                    {isRequestClosed && (
+                      <p className="text-sm text-neutral-500 mt-2">
+                        Comments are disabled because this request has been {request.status}.
+                      </p>
+                    )}
                   </div>
                 </div>
               </Card>
@@ -595,6 +651,7 @@ export default function RequestDetailPage() {
                           key={item.id}
                           media={item}
                           onDelete={handleDeleteMedia}
+                          canDelete={canDeleteAttachments}
                         />
                       ))}
                     </div>
@@ -608,23 +665,32 @@ export default function RequestDetailPage() {
                     onChange={handleFileUpload}
                     accept="image/*,.pdf,.doc,.docx,.txt"
                   />
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploading}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-neutral-200 text-sm text-neutral-500 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50 transition-all disabled:opacity-50"
-                  >
-                    {uploading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Uploading...
-                      </>
-                    ) : (
-                      <>
-                        <Paperclip className="h-4 w-4" />
-                        Attach a file
-                      </>
+                  <div>
+                    <button
+                      onClick={handleAttachClick}
+                      disabled={isRequestClosed || uploading}
+                      className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-neutral-200 text-sm text-neutral-500 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50 transition-all disabled:opacity-50 ${
+                        isRequestClosed ? "cursor-not-allowed" : ""
+                      }`}
+                    >
+                      {uploading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Paperclip className="h-4 w-4" />
+                          Attach a file
+                        </>
+                      )}
+                    </button>
+                    {isRequestClosed && (
+                      <p className="text-sm text-neutral-500 mt-2">
+                        File uploads are disabled because this request has been {request.status}.
+                      </p>
                     )}
-                  </button>
+                  </div>
                 </div>
               </Card>
             </div>

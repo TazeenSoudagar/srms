@@ -10,6 +10,16 @@ const nextConfig: NextConfig = {
         port: "8000",
         pathname: "/storage/**",
       },
+      {
+        protocol: "https",
+        hostname: "srms-backend.test",
+        pathname: "/storage/**",
+      },
+      {
+        protocol: "http",
+        hostname: "srms-backend.test",
+        pathname: "/storage/**",
+      },
     ],
   },
   experimental: {

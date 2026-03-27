@@ -38,6 +38,11 @@ const statusConfig: Record<
     icon: CheckCircle2,
     color: "bg-green-100 text-green-700",
   },
+  cancelled: {
+    label: "Cancelled",
+    icon: XCircle,
+    color: "bg-red-100 text-red-700",
+  },
 };
 
 const filterTabs = [
@@ -45,6 +50,7 @@ const filterTabs = [
   { key: "open", label: "Open" },
   { key: "in_progress", label: "In Progress" },
   { key: "closed", label: "Closed" },
+  { key: "cancelled", label: "Cancelled" },
 ];
 
 export default function MyRequestsPage() {

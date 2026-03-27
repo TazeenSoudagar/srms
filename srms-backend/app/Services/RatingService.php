@@ -68,7 +68,7 @@ class RatingService
         // Calculate rating distribution
         $distribution = [];
         for ($i = 1; $i <= 5; $i++) {
-            $distribution[(string)$i] = $ratings->where('rating', $i)->count();
+            $distribution[(string) $i] = $ratings->where('rating', $i)->count();
         }
         $aggregate->rating_distribution = $distribution;
 
@@ -83,7 +83,7 @@ class RatingService
     {
         $aggregate = $engineer->ratingAggregate;
 
-        if (!$aggregate) {
+        if (! $aggregate) {
             return [
                 'average_rating' => 0,
                 'total_ratings' => 0,

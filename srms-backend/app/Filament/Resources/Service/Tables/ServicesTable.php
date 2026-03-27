@@ -26,10 +26,6 @@ class ServicesTable
                 IconColumn::make('is_active')
                     ->boolean()
                     ->sortable(),
-                TextColumn::make('serviceRequests_count')
-                    ->counts('serviceRequests')
-                    ->label('Requests')
-                    ->sortable(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

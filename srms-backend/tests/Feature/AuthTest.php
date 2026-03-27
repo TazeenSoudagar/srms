@@ -2,12 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Models\OtpVerification;
-use App\Models\Role;
-use App\Models\User;
 use Illuminate\Support\Facades\Queue;
 
-use function Pest\Laravel\assertDatabaseHas;
 use function Pest\Laravel\postJson;
 
 beforeEach(function () {

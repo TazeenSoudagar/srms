@@ -142,7 +142,7 @@ class ServiceRequestController extends Controller
             'createdBy',
             'assignedTo',
             'updatedBy',
-            'comments.user',
+            'comments.user.role',
             'media',
         ]);
 
@@ -219,7 +219,7 @@ class ServiceRequestController extends Controller
         // Log activity
         ActivityLogService::logAssigned($user, $serviceRequest, $assignedTo, [
             'previous_assigned_to' => $oldAssignedTo?->id,
-            'previous_assigned_to_name' => $oldAssignedTo ? $oldAssignedTo->first_name . ' ' . $oldAssignedTo->last_name : null,
+            'previous_assigned_to_name' => $oldAssignedTo ? $oldAssignedTo->first_name.' '.$oldAssignedTo->last_name : null,
         ]);
 
         return new ServiceRequestResource($serviceRequest);
@@ -284,5 +284,40 @@ class ServiceRequestController extends Controller
         ]);
 
         return new ServiceRequestResource($serviceRequest);
+    }
+
+    /**
+     * Cancel a service request.
+     * Customers can only cancel their own requests that are still open.
+     */
+    public function cancel(ServiceRequest $serviceRequest): JsonResponse
+    {
+        $this->authorize('cancel', $serviceRequest);
+
+        $user = Auth::user();
+        $oldStatus = $serviceRequest->status?->value ?? $serviceRequest->status;
+
+        // Validate that the request can be cancelled
+        if ($oldStatus !== 'open') {
+            return response()->json([
+                'message' => 'Cannot cancel request. Only open requests can be cancelled.',
+            ], 422);
+        }
+
+        $serviceRequest->update([
+            'status' => 'cancelled',
+            'closed_at' => now(),
+            'updated_by' => $user->id,
+        ]);
+
+        $serviceRequest->load(['service', 'createdBy', 'assignedTo', 'updatedBy']);
+
+        // Log activity
+        ActivityLogService::logStatusChanged($user, $serviceRequest, $oldStatus, 'cancelled');
+
+        return response()->json([
+            'message' => 'Service request cancelled successfully',
+            'data' => new ServiceRequestResource($serviceRequest),
+        ], 200);
     }
 }

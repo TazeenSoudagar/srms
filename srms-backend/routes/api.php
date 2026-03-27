@@ -36,6 +36,7 @@ Route::prefix('public')->group(function () {
     Route::get('services', [\App\Http\Controllers\Api\ServiceController::class, 'index']);
     Route::get('services/featured', [\App\Http\Controllers\Api\ServiceController::class, 'featured']);
     Route::get('services/trending', [\App\Http\Controllers\Api\ServiceController::class, 'trending']);
+    Route::get('services/popular', [\App\Http\Controllers\Api\ServiceController::class, 'popular']);
     Route::get('services/search', [\App\Http\Controllers\Api\ServiceController::class, 'search']);
     Route::get('services/{service}', [\App\Http\Controllers\Api\ServiceController::class, 'show']);
 });
@@ -64,6 +65,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('service-requests/{serviceRequest}/assign', [\App\Http\Controllers\Api\ServiceRequestController::class, 'assign']);
     Route::patch('service-requests/{serviceRequest}/status', [\App\Http\Controllers\Api\ServiceRequestController::class, 'updateStatus']);
     Route::post('service-requests/{serviceRequest}/close', [\App\Http\Controllers\Api\ServiceRequestController::class, 'close']);
+    Route::post('service-requests/{serviceRequest}/cancel', [\App\Http\Controllers\Api\ServiceRequestController::class, 'cancel']);
 
     // Comments (nested under service requests)
     Route::get('service-requests/{serviceRequest}/comments', [\App\Http\Controllers\Api\CommentController::class, 'index']);
@@ -73,6 +75,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('service-requests/{serviceRequest}/comments/{comment}', [\App\Http\Controllers\Api\CommentController::class, 'destroy']);
 
     // Media/Attachments (nested under service requests)
+    Route::get('service-requests/{serviceRequest}/media', [\App\Http\Controllers\Api\MediaController::class, 'index']);
     Route::post('service-requests/{serviceRequest}/media', [\App\Http\Controllers\Api\MediaController::class, 'store']);
     Route::get('service-requests/{serviceRequest}/media/{media}', [\App\Http\Controllers\Api\MediaController::class, 'show']);
     Route::delete('service-requests/{serviceRequest}/media/{media}', [\App\Http\Controllers\Api\MediaController::class, 'destroy']);

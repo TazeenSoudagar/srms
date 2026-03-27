@@ -11,11 +11,12 @@ use Illuminate\Database\Eloquent\Model;
 class Comment extends Model
 {
     use HasFactory, HasHashidsRouteBinding;
+
     protected $fillable = [
         'commentable_id',
         'commentable_type',
         'user_id',
-        'body'
+        'body',
     ];
 
     public function commentable()

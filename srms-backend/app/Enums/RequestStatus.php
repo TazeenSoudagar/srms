@@ -7,6 +7,7 @@ enum RequestStatus: string
     case Open = 'open';
     case InProgress = 'in_progress';
     case Closed = 'closed';
+    case Cancelled = 'cancelled';
 
     public static function options(): array
     {
@@ -14,6 +15,7 @@ enum RequestStatus: string
             self::Open->value => 'Open',
             self::InProgress->value => 'In Progress',
             self::Closed->value => 'Closed',
+            self::Cancelled->value => 'Cancelled',
         ];
     }
 

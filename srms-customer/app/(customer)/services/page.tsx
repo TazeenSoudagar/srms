@@ -17,7 +17,9 @@ export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(
+    searchParams?.get("search") || ""
+  );
   const [selectedCategory, setSelectedCategory] = useState(
     searchParams?.get("category") || "all"
   );
@@ -25,6 +27,14 @@ export default function ServicesPage() {
   useEffect(() => {
     fetchData();
   }, [selectedCategory]);
+
+  // Update search query when URL params change
+  useEffect(() => {
+    const urlSearchQuery = searchParams?.get("search");
+    if (urlSearchQuery) {
+      setSearchQuery(urlSearchQuery);
+    }
+  }, [searchParams]);
 
   const fetchData = async () => {
     try {

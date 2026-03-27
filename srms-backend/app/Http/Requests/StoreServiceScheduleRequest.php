@@ -44,7 +44,7 @@ class StoreServiceScheduleRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         // Decode service_request_id if it's hashed (not a numeric ID)
-        if ($this->has('service_request_id') && is_string($this->service_request_id) && !is_numeric($this->service_request_id)) {
+        if ($this->has('service_request_id') && is_string($this->service_request_id) && ! is_numeric($this->service_request_id)) {
             try {
                 $decoded = \Vinkla\Hashids\Facades\Hashids::decode($this->service_request_id);
                 $serviceRequestId = $decoded[0] ?? null;
@@ -60,14 +60,14 @@ class StoreServiceScheduleRequest extends FormRequest
         }
 
         // Set customer_id from authenticated user if not provided
-        if (!$this->has('customer_id')) {
+        if (! $this->has('customer_id')) {
             $this->merge([
                 'customer_id' => $this->user()->id,
             ]);
         }
 
         // Set default estimated duration if not provided
-        if (!$this->has('estimated_duration_minutes')) {
+        if (! $this->has('estimated_duration_minutes')) {
             $this->merge([
                 'estimated_duration_minutes' => 60,
             ]);

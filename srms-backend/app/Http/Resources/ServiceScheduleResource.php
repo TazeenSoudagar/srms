@@ -24,13 +24,13 @@ class ServiceScheduleResource extends JsonResource
             ],
             'customer' => [
                 'id' => $this->customer->hashed_id,
-                'name' => $this->customer->first_name . ' ' . $this->customer->last_name,
+                'name' => $this->customer->first_name.' '.$this->customer->last_name,
                 'email' => $this->customer->email,
                 'phone' => $this->customer->phone,
             ],
             'engineer' => $this->engineer ? [
                 'id' => $this->engineer->hashed_id,
-                'name' => $this->engineer->first_name . ' ' . $this->engineer->last_name,
+                'name' => $this->engineer->first_name.' '.$this->engineer->last_name,
                 'email' => $this->engineer->email,
             ] : null,
             'scheduled_at' => $this->scheduled_at->toIso8601String(),

@@ -97,6 +97,27 @@ class ServiceRequestPolicy
     }
 
     /**
+     * Determine whether the user can cancel the model.
+     * Client: can cancel their own open requests
+     * Admin: can cancel any request
+     * Support Engineer: cannot cancel requests
+     */
+    public function cancel(User $user, ServiceRequest $serviceRequest): bool
+    {
+        if ($this->isAdmin($user)) {
+            return true;
+        }
+
+        if ($this->isClient($user)) {
+            // Client can only cancel their own requests that are still open
+            return $serviceRequest->created_by === $user->id
+                && $serviceRequest->status->value === 'open';
+        }
+
+        return false;
+    }
+
+    /**
      * Determine whether the user can delete the model.
      * Admin only.
      */

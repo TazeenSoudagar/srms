@@ -17,6 +17,26 @@ use Illuminate\Support\Str;
 class MediaController extends Controller
 {
     /**
+     * List all media attachments for a service request.
+     */
+    public function index(ServiceRequest $serviceRequest): JsonResponse
+    {
+        $this->authorize('view', $serviceRequest);
+
+        $media = $serviceRequest->media()->latest()->get();
+
+        $hashids = app(\App\Services\HashidsService::class);
+
+        return response()->json([
+            'data' => $media->map(fn (Media $m) => [
+                'id' => $hashids->encode($m->id),
+                'name' => $m->name,
+                'url' => $m->url,
+            ])->values(),
+        ]);
+    }
+
+    /**
      * Upload a file attachment to a service request.
      */
     public function store(Request $request, ServiceRequest $serviceRequest): JsonResponse
@@ -85,10 +105,20 @@ class MediaController extends Controller
     {
         // Verify media belongs to service request
         if ($media->mediaable_id !== $serviceRequest->id || $media->mediaable_type !== ServiceRequest::class) {
-            abort(404, 'Media not found for this service request.');
+            return response()->json([
+                'message' => 'Media not found for this request',
+            ], 404);
         }
 
-        $this->authorize('delete', $media);
+        // Authorize - only request creator can delete
+        $this->authorize('delete', [$media, $serviceRequest]);
+
+        // Check status - only allow deletion if status is 'open'
+        if ($serviceRequest->status->value !== 'open') {
+            return response()->json([
+                'message' => 'Cannot delete attachments. Request is already in progress or closed.',
+            ], 403);
+        }
 
         $user = Auth::user();
 
@@ -105,7 +135,7 @@ class MediaController extends Controller
         $media->delete();
 
         return response()->json([
-            'message' => 'File deleted successfully',
+            'message' => 'Attachment deleted successfully',
         ], 200);
     }
 }

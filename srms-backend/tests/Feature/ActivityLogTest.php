@@ -3,19 +3,15 @@
 declare(strict_types=1);
 
 use App\Models\ActivityLog;
-use App\Models\Comment;
-use App\Models\Role;
 use App\Models\ServiceRequest;
 use App\Models\User;
-
-use function Pest\Laravel\assertDatabaseHas;
 
 beforeEach(function () {
     $this->seed(\Database\Seeders\RoleSeeder::class);
 });
 
 test('activity log model exists and has correct casts', function () {
-    $activityLog = new ActivityLog();
+    $activityLog = new ActivityLog;
 
     expect($activityLog)->toBeInstanceOf(ActivityLog::class);
     expect($activityLog->getCasts())->toHaveKey('details');

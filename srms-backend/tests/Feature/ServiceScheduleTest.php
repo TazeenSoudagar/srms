@@ -1,10 +1,10 @@
 <?php
 
-use App\Models\ServiceSchedule;
-use App\Models\ServiceRequest;
-use App\Models\User;
 use App\Models\Role;
 use App\Models\Service;
+use App\Models\ServiceRequest;
+use App\Models\ServiceSchedule;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);

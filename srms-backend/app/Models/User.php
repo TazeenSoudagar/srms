@@ -93,6 +93,7 @@ class User extends Authenticatable
     public function getNameAttribute(): string
     {
         $parts = array_filter([$this->first_name, $this->last_name]);
+
         return implode(' ', $parts) ?: $this->email;
     }
 

@@ -3,7 +3,8 @@
 export type ServiceRequestStatus =
   | 'open'
   | 'in_progress'
-  | 'closed';
+  | 'closed'
+  | 'cancelled';
 
 export type ServiceRequestPriority = 'low' | 'medium' | 'high';
 
@@ -67,8 +68,8 @@ export interface Comment {
     name: string;
     email?: string;
   };
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateCommentDto {
@@ -77,11 +78,9 @@ export interface CreateCommentDto {
 
 export interface Media {
   id: string;
-  filename: string;
+  name: string;
   url: string;
-  mimeType?: string;
-  size?: number;
-  created_at: string;
+  created_at?: string;
 }
 
 export interface ServiceRequestFilters {

@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Role extends Model
 {
     use HasFactory;
-    
+
     protected $fillable = ['name', 'is_active'];
 
     protected $casts = [

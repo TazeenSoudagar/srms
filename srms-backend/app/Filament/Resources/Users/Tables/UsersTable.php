@@ -26,10 +26,13 @@ class UsersTable
                     ->label('Email address')
                     ->searchable(),
                 TextColumn::make('role.name')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('email_verified_at')
-                    ->dateTime()
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'Admin' => 'success',
+                        'Support Engineer' => 'info',
+                        'Client' => 'gray',
+                        default => 'gray',
+                    })
                     ->sortable(),
                 IconColumn::make('is_active')
                     ->boolean(),
