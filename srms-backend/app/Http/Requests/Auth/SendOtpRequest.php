@@ -27,7 +27,7 @@ class SendOtpRequest extends FormRequest
             'email' => [
                 'required',
                 'email',
-                Rule::exists('users', 'email')->where('is_active', true),
+                Rule::exists('users', 'email'),
             ],
             'type' => ['required', 'string', Rule::in(['login', 'password-reset'])],
         ];
@@ -41,5 +41,22 @@ class SendOtpRequest extends FormRequest
             'email.email' => 'The email must be a valid email address.',
             'type.required' => 'The type field is required.',
         ];
+    }
+
+    /**
+     * Additional validation after rules pass
+     */
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $user = User::where('email', $this->email)->first();
+
+            if ($user && ! $user->is_active) {
+                $validator->errors()->add(
+                    'email',
+                    'Please complete your registration. Check your email for the verification code or register again to resend OTP.'
+                );
+            }
+        });
     }
 }

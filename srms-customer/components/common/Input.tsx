@@ -16,7 +16,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     const baseStyles = `
       w-full px-4 py-2.5
       bg-white border rounded-lg
-      text-neutral-900 placeholder:text-neutral-400
+      text-neutral-900 placeholder:text-neutral-400 placeholder:text-sm
       focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500
       disabled:bg-neutral-100 disabled:cursor-not-allowed
       transition-colors

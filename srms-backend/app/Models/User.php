@@ -128,4 +128,20 @@ class User extends Authenticatable
     {
         return $this->hasOne(EngineerRatingAggregate::class, 'engineer_id');
     }
+
+    /**
+     * Get service requests assigned to this user (as engineer).
+     */
+    public function assignedServiceRequests(): HasMany
+    {
+        return $this->hasMany(ServiceRequest::class, 'assigned_to');
+    }
+
+    /**
+     * Get service requests created by this user (as customer).
+     */
+    public function serviceRequests(): HasMany
+    {
+        return $this->hasMany(ServiceRequest::class, 'created_by');
+    }
 }

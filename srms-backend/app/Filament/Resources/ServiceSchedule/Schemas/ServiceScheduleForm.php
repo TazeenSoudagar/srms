@@ -1,0 +1,116 @@
+<?php
+
+namespace App\Filament\Resources\ServiceSchedule\Schemas;
+
+use App\Models\ServiceRequest;
+use App\Models\User;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+
+class ServiceScheduleForm
+{
+    public static function configure(Schema $schema): Schema
+    {
+        return $schema
+            ->columns(2)
+            ->components([
+                Section::make('Schedule Details')
+                    ->schema([
+                        Select::make('service_request_id')
+                            ->label('Service Request')
+                            ->relationship('serviceRequest', 'request_number')
+                            ->required()
+                            ->searchable()
+                            ->preload()
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                if ($state) {
+                                    $serviceRequest = ServiceRequest::find($state);
+                                    if ($serviceRequest) {
+                                        $set('customer_id', $serviceRequest->created_by);
+                                        $set('engineer_id', $serviceRequest->assigned_to);
+                                    }
+                                } else {
+                                    // Clear both fields when service request is cleared
+                                    $set('customer_id', null);
+                                    $set('engineer_id', null);
+                                }
+                            }),
+                        Select::make('customer_id')
+                            ->label('Customer')
+                            ->relationship('customer', 'first_name')
+                            ->required()
+                            ->searchable()
+                            ->preload()
+                            ->disabled(fn ($get) => $get('service_request_id') !== null)
+                            ->helperText('Auto-filled from service request'),
+                        Select::make('engineer_id')
+                            ->label('Engineer')
+                            ->options(function () {
+                                return User::whereHas('role', function ($query) {
+                                    $query->where('name', 'Support Engineer');
+                                })->pluck('first_name', 'id');
+                            })
+                            ->required()
+                            ->searchable()
+                            ->preload()
+                            ->disabled(fn ($get) => $get('service_request_id') !== null && $get('engineer_id') !== null)
+                            ->helperText('Auto-filled from service request if assigned'),
+                    ])
+                    ->columns(3)
+                    ->columnSpanFull(),
+
+                Section::make('Appointment Details')
+                    ->schema([
+                        DateTimePicker::make('scheduled_at')
+                            ->label('Scheduled Date & Time')
+                            ->required()
+                            ->native(false)
+                            ->minDate(now())
+                            ->seconds(false),
+                        Select::make('status')
+                            ->required()
+                            ->default('pending')
+                            ->options([
+                                'pending' => 'Pending',
+                                'confirmed' => 'Confirmed',
+                                'in_progress' => 'In Progress',
+                                'completed' => 'Completed',
+                                'cancelled' => 'Cancelled',
+                            ])
+                            ->native(false),
+                        TextInput::make('estimated_duration_minutes')
+                            ->label('Estimated Duration (minutes)')
+                            ->numeric()
+                            ->minValue(0)
+                            ->default(60)
+                            ->suffix('min'),
+                    ])
+                    ->columns(3)
+                    ->columnSpanFull(),
+
+                Section::make('Location & Notes')
+                    ->schema([
+                        Textarea::make('location')
+                            ->rows(2)
+                            ->columnSpanFull()
+                            ->placeholder('Enter service location address'),
+                        RichEditor::make('notes')
+                            ->columnSpanFull()
+                            ->toolbarButtons([
+                                'bold',
+                                'italic',
+                                'bulletList',
+                                'orderedList',
+                                'link',
+                            ]),
+                    ])
+                    ->columnSpanFull(),
+            ]);
+    }
+}

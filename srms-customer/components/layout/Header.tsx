@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Menu, X, User, Phone, Home, LogOut, UserCircle, FileText, ChevronDown } from "lucide-react";
 import Container from "./Container";
 import Button from "../common/Button";
@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export default function Header() {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, isAuthenticated, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -70,15 +71,23 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="px-4 py-2 text-neutral-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors font-medium"
-              >
-                {item.name}
-              </Link>
-            ))}
+            {navigation.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={cn(
+                    "px-4 py-2 rounded-lg transition-colors font-medium",
+                    isActive
+                      ? "text-primary-600 bg-primary-50"
+                      : "text-neutral-700 hover:text-primary-600 hover:bg-primary-50"
+                  )}
+                >
+                  {item.name}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Desktop Actions */}
@@ -198,17 +207,25 @@ export default function Header() {
               </div>
             )}
 
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="flex items-center gap-3 px-4 py-3 text-neutral-700 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-colors font-medium"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {item.icon && <item.icon className="w-5 h-5" />}
-                {item.name}
-              </Link>
-            ))}
+            {navigation.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium",
+                    isActive
+                      ? "bg-primary-50 text-primary-600"
+                      : "text-neutral-700 hover:bg-primary-50 hover:text-primary-600"
+                  )}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item.icon && <item.icon className="w-5 h-5" />}
+                  {item.name}
+                </Link>
+              );
+            })}
 
             <div className="pt-4 space-y-2">
               {isAuthenticated && user ? (

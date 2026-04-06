@@ -122,9 +122,9 @@ export default function FeaturedServices() {
                     </p>
 
                     {/* Rating */}
-                    {(service.rating || service.reviewCount) && (
+                    {(service.rating > 0 || service.reviewCount > 0) && (
                       <div className="flex items-center gap-2 mb-4">
-                        {service.rating && (
+                        {service.rating > 0 && (
                           <div className="flex items-center gap-1">
                             <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
                             <span className="font-medium text-neutral-900">
@@ -132,7 +132,7 @@ export default function FeaturedServices() {
                             </span>
                           </div>
                         )}
-                        {service.reviewCount && (
+                        {service.reviewCount > 0 && (
                           <span className="text-sm text-neutral-500">
                             ({service.reviewCount} reviews)
                           </span>

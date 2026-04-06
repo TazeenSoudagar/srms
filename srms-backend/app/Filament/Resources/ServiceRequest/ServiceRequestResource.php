@@ -15,16 +15,48 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class ServiceRequestResource extends Resource
 {
     protected static ?string $model = ServiceRequest::class;
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 1;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
+    protected static BackedEnum|string|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
+
+    protected static UnitEnum|string|null $navigationGroup = 'Requests';
 
     protected static ?string $recordTitleAttribute = 'request_number';
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::where('status', 'open')->count();
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'warning';
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['request_number', 'title', 'description'];
+    }
+
+    public static function getGlobalSearchResultTitle($record): string
+    {
+        return "#{$record->request_number}";
+    }
+
+    public static function getGlobalSearchResultDetails($record): array
+    {
+        return [
+            'Title' => $record->title,
+            'Status' => $record->status,
+            'Service' => $record->service?->name,
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -46,6 +78,8 @@ class ServiceRequestResource extends Resource
         return [
             RelationManagers\CommentsRelationManager::class,
             RelationManagers\MediaRelationManager::class,
+            RelationManagers\SchedulesRelationManager::class,
+            RelationManagers\RatingsRelationManager::class,
         ];
     }
 

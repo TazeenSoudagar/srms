@@ -10,6 +10,8 @@ class EngineerRatingAggregate extends Model
 {
     use HasFactory;
 
+    protected $table = 'engineer_ratings_aggregate';
+
     protected $fillable = [
         'engineer_id',
         'average_rating',

@@ -19,6 +19,16 @@ Route::prefix('auth')->group(function () {
     Route::post('login-password', [AuthController::class, 'loginPassword'])
         ->middleware('throttle:10,1'); // 10 requests per minute
 
+    // Registration routes
+    Route::post('register', [AuthController::class, 'register'])
+        ->middleware('throttle:5,1'); // 5 requests per minute
+
+    Route::post('verify-registration-otp', [AuthController::class, 'verifyRegistrationOtp'])
+        ->middleware('throttle:10,1'); // 10 requests per minute
+
+    Route::post('set-password', [AuthController::class, 'setPassword'])
+        ->middleware('throttle:10,1'); // 10 requests per minute
+
     // Authenticated auth routes
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);

@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\ServiceRequest;
+use App\Models\ServiceSchedule;
+use App\Observers\ServiceRequestObserver;
+use App\Observers\ServiceScheduleObserver;
 use App\Services\HashidsService;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
@@ -27,5 +31,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // Policies are auto-discovered by Laravel
         // They follow the naming convention: ModelPolicy for Model
+
+        // Register model observers
+        ServiceRequest::observe(ServiceRequestObserver::class);
+        ServiceSchedule::observe(ServiceScheduleObserver::class);
     }
 }

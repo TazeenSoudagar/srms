@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Phone, ArrowRight } from "lucide-react";
 import Card from "@/components/common/Card";
 import Button from "@/components/common/Button";
@@ -94,9 +95,9 @@ export default function LoginPage() {
       <div className="mt-8 pt-6 border-t border-neutral-200">
         <p className="text-sm text-neutral-600 text-center">
           New to SRMS?{" "}
-          <span className="text-primary-600 font-medium">
-            No worries! We'll create your account automatically.
-          </span>
+          <Link href="/register" className="text-primary-600 font-medium hover:text-primary-700 transition-colors">
+            Register here
+          </Link>
         </p>
       </div>
 

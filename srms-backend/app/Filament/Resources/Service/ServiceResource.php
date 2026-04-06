@@ -15,6 +15,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class ServiceResource extends Resource
 {
@@ -22,9 +23,24 @@ class ServiceResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedWrenchScrewdriver;
+    protected static BackedEnum|string|null $navigationIcon = Heroicon::OutlinedWrenchScrewdriver;
+
+    protected static UnitEnum|string|null $navigationGroup = 'Service Management';
 
     protected static ?string $recordTitleAttribute = 'name';
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name', 'description'];
+    }
+
+    public static function getGlobalSearchResultDetails($record): array
+    {
+        return [
+            'Category' => $record->category?->name,
+            'Price' => $record->base_price ? '$' . number_format($record->base_price, 2) : '—',
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -44,7 +60,7 @@ class ServiceResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\ServiceRequestsRelationManager::class,
         ];
     }
 

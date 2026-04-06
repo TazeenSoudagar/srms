@@ -28,7 +28,6 @@ class ServiceRequest extends Model
         'priority',
         'assigned_to',
         'due_date',
-        'closed_at',
         'updated_by',
         'is_active',
     ];
@@ -107,6 +106,22 @@ class ServiceRequest extends Model
     public function activityLogs(): MorphMany
     {
         return $this->morphMany(ActivityLog::class, 'loggable');
+    }
+
+    /**
+     * Get all schedules for this service request.
+     */
+    public function schedules(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ServiceSchedule::class);
+    }
+
+    /**
+     * Get all ratings for this service request.
+     */
+    public function ratings(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Rating::class);
     }
 
     /**

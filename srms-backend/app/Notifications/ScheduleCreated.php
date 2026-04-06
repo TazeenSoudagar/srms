@@ -1,0 +1,34 @@
+<?php
+
+namespace App\Notifications;
+
+use App\Models\ServiceSchedule;
+use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Notification;
+
+class ScheduleCreated extends Notification
+{
+    use Queueable;
+
+    public function __construct(
+        public ServiceSchedule $schedule
+    ) {}
+
+    public function via($notifiable): array
+    {
+        return ['database'];
+    }
+
+    public function toArray($notifiable): array
+    {
+        return [
+            'title' => 'Schedule Created',
+            'message' => "A new appointment has been scheduled for " . $this->schedule->scheduled_at->format('M j, Y g:i A'),
+            'schedule_id' => $this->schedule->id,
+            'service_request_id' => $this->schedule->service_request_id,
+            'scheduled_at' => $this->schedule->scheduled_at->toISOString(),
+            'icon' => 'heroicon-o-calendar',
+            'color' => 'success',
+        ];
+    }
+}
