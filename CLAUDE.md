@@ -81,10 +81,10 @@ All authenticated routes require `Authorization: Bearer {token}`.
 
 ## Filament Admin Panel
 
-**URL**: `http://localhost:8000/admin`  
+**URL**: `http://localhost:8000/admin`
 **Access**: role_id = 1 (Admin) or role_id = 2 (Support Engineer)
 
-Resources: ServiceRequest, Service, User, Category, Rating, ServiceSchedule, ActivityLog  
+Resources: ServiceRequest, Service, User, Category, Rating, ServiceSchedule, ActivityLog
 All resources support Excel/CSV export via bulk actions.
 
 ## Coding Standards
