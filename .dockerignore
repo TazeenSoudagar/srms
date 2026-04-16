@@ -1,0 +1,58 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+LICENSE
+CHANGELOG
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build artifacts and dependencies
+node_modules
+vendor
+.pnp
+.pnp.js
+
+# Testing
+coverage
+.nyc_output
+*.log
+
+# Next.js build output
+.next
+out
+
+# React build output
+dist
+build
+
+# Laravel artifacts
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+bootstrap/cache/*
+.env
+.env.*
+!.env.example
+
+# Misc
+.cache
+tmp
+temp
+*.tmp
+
+# Docker files (exclude from Docker context)
+docker
+docker-compose*.yml
+Dockerfile
+.dockerignore

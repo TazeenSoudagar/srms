@@ -1,0 +1,61 @@
+services:
+  nginx:
+    ports:
+      - "80:80"
+      # No HTTPS in dev mode
+
+  backend:
+    volumes:
+      - ./srms-backend:/var/www/html
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+    ports:
+      - "8000:9000"
+
+  queue:
+    volumes:
+      - ./srms-backend:/var/www/html
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+
+  frontend:
+    build:
+      context: ./srms-frontend
+      dockerfile: ../docker/frontend/Dockerfile
+      args:
+        - VITE_API_BASE_URL=http://localhost:8000/api
+    volumes:
+      - ./srms-frontend:/app
+      - /app/node_modules
+    command: npm run dev -- --host 0.0.0.0
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+
+  customer:
+    build:
+      context: ./srms-customer
+      dockerfile: ../docker/customer/Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:8000/api
+        - NEXT_PUBLIC_APP_URL=http://localhost:3000
+    volumes:
+      - ./srms-customer:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+
+  mysql:
+    ports:
+      - "3306:3306"
+
+  redis:
+    ports:
+      - "6379:6379"
