@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Filament\Resources\ServiceRequest\RelationManagers;
 
 use App\Models\User;
@@ -26,15 +25,14 @@ class SchedulesRelationManager extends RelationManager
             ->components([
                 Select::make('engineer_id')
                     ->label('Engineer')
-                    ->options(function () {
-                        return User::whereHas('role', function ($query) {
-                            $query->where('name', 'Support Engineer');
-                        })->pluck('first_name', 'id');
-                    })
+                    ->options(fn() => User::whereHas('role', function ($query) {
+                        $query->where('name', 'Support Engineer');
+                    })->pluck('first_name', 'id'))
                     ->required()
                     ->searchable()
                     ->preload()
-                    ->default(fn ($livewire) => $livewire->ownerRecord->assigned_to ?? null),
+                    ->disabled(fn($livewire) => !$livewire->ownerRecord->assigned_to ?? null)
+                    ->default(fn($livewire) => $livewire?->ownerRecord?->assigned_to ?? null),
                 DateTimePicker::make('scheduled_at')
                     ->label('Scheduled Date & Time')
                     ->required()
@@ -45,11 +43,11 @@ class SchedulesRelationManager extends RelationManager
                     ->required()
                     ->default('pending')
                     ->options([
-                        'pending' => 'Pending',
-                        'confirmed' => 'Confirmed',
+                        'pending'     => 'Pending',
+                        'confirmed'   => 'Confirmed',
                         'in_progress' => 'In Progress',
-                        'completed' => 'Completed',
-                        'cancelled' => 'Cancelled',
+                        'completed'   => 'Completed',
+                        'cancelled'   => 'Cancelled',
                     ])
                     ->native(false),
                 TextInput::make('estimated_duration_minutes')
@@ -74,8 +72,7 @@ class SchedulesRelationManager extends RelationManager
             ]);
     }
 
-    public function table(Table $table): Table
-    {
+    public function table(Table $table): Table {
         return $table
             ->recordTitleAttribute('scheduled_at')
             ->columns([
@@ -86,16 +83,18 @@ class SchedulesRelationManager extends RelationManager
                     ->label('Scheduled For')
                     ->dateTime('M j, Y g:i A')
                     ->sortable()
-                    ->color(fn ($record) => $record->scheduled_at->isPast() && $record->status !== 'completed' ? 'danger' : 'primary'),
+                    ->color(fn($record) => $record->scheduled_at->isPast() && $record->status !== 'completed'
+                        ? 'danger'
+                        : 'primary'),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'pending' => 'warning',
-                        'confirmed' => 'info',
+                    ->color(fn(string $state): string => match ($state) {
+                        'pending'     => 'warning',
+                        'confirmed'   => 'info',
                         'in_progress' => 'primary',
-                        'completed' => 'success',
-                        'cancelled' => 'danger',
-                        default => 'gray',
+                        'completed'   => 'success',
+                        'cancelled'   => 'danger',
+                        default       => 'gray',
                     })
                     ->sortable(),
                 Tables\Columns\TextColumn::make('location')
@@ -104,7 +103,7 @@ class SchedulesRelationManager extends RelationManager
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('estimated_duration_minutes')
                     ->label('Duration')
-                    ->formatStateUsing(fn ($state) => $state ? "{$state} min" : '—')
+                    ->formatStateUsing(fn($state) => $state ? "{$state} min" : '—')
                     ->toggleable(),
             ])
             ->filters([

@@ -38,7 +38,7 @@ class ServiceResource extends Resource
     {
         return [
             'Category' => $record->category?->name,
-            'Price' => $record->base_price ? '$' . number_format($record->base_price, 2) : '—',
+            'Price' => $record->base_price ? '₹' . number_format($record->base_price, 2) : '—',
         ];
     }
 

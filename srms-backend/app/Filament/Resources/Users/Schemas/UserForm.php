@@ -90,7 +90,7 @@ class UserForm
                         TextInput::make('hourly_rate')
                             ->label('Hourly Rate')
                             ->numeric()
-                            ->prefix('$')
+                            ->prefix('₹')
                             ->minValue(0)
                             ->step(0.01)
                             ->maxValue(9999.99),
