@@ -7,6 +7,7 @@ use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class ServiceInfolist
 {
@@ -21,8 +22,23 @@ class ServiceInfolist
                             ->label('Service Image')
                             ->disk('public')
                             ->size(200)
-                            ->defaultImageUrl('/images/placeholder-service.png')
-                            ->getStateUsing(fn ($record) => $record->media->first()?->url)
+                            ->defaultImageUrl(
+                                'https://ui-avatars.com/api/?name=Service&color=7F9CF5&background=EBF4FF&size=200'
+                            )
+                            ->getStateUsing(function ($record): ?string {
+                                $media = $record->media->first();
+                                if (! $media) {
+                                    return null;
+                                }
+                                if ($media->path) {
+                                    return $media->path;
+                                }
+                                $parsed = parse_url($media->url, PHP_URL_PATH);
+
+                                return $parsed
+                                    ? ltrim(str_replace('/storage/', '', $parsed), '/')
+                                    : null;
+                            })
                             ->columnSpanFull(),
                         TextEntry::make('name')
                             ->size('large')
@@ -46,7 +62,7 @@ class ServiceInfolist
                     ->schema([
                         TextEntry::make('base_price')
                             ->label('Base Price')
-                            ->money('USD')
+                            ->money('INR')
                             ->placeholder('Not set'),
                         TextEntry::make('average_duration_minutes')
                             ->label('Average Duration')

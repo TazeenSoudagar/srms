@@ -65,7 +65,7 @@ class UsersTable
                     ->toggleable(),
                 TextColumn::make('hourly_rate')
                     ->label('Rate')
-                    ->money('USD')
+                    ->money('INR')
                     ->visible(fn($record) => $record?->role?->name === 'Support Engineer')
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('years_of_experience')

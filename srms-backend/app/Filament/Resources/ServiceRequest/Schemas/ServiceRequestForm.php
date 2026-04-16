@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Filament\Resources\ServiceRequest\Schemas;
 
 use App\Enums\RequestPriority;
@@ -50,8 +49,9 @@ class ServiceRequestForm
                     ->dehydrated()
                     ->columnSpan(1),
                 Select::make('assigned_to')
-                    ->relationship('assignedTo', 'first_name', fn ($query) => $query->whereHas('role', fn ($q) => $q->where('name', 'Support Engineer')))
+                    ->relationship('assignedTo', 'first_name', fn($query) => $query->whereHas('role', fn($q) => $q->where('name', 'Support Engineer')))
                     ->searchable()
+
                     ->preload()
                     ->columnSpan(1),
                 DatePicker::make('due_date')
