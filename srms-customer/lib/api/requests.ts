@@ -85,7 +85,7 @@ export const serviceRequestsApi = {
     data: CancelServiceRequestDto
   ): Promise<ApiResponse<ServiceRequest>> => {
     const response = await apiClient.post<ApiResponse<ServiceRequest>>(
-      `/service-requests/${id}/close`,
+      `/service-requests/${id}/cancel`,
       data
     );
     return response.data;

@@ -31,14 +31,15 @@ class SchedulesRelationManager extends RelationManager
                     ->required()
                     ->searchable()
                     ->preload()
-                    ->disabled(fn($livewire) => !$livewire->ownerRecord->assigned_to ?? null)
-                    ->default(fn($livewire) => $livewire?->ownerRecord?->assigned_to ?? null),
+                    ->helperText('Select the engineer to assign this schedule'),
                 DateTimePicker::make('scheduled_at')
                     ->label('Scheduled Date & Time')
                     ->required()
                     ->native(false)
                     ->minDate(now())
-                    ->seconds(false),
+                    ->seconds(false)
+                    ->default(fn($livewire) => $livewire?->ownerRecord?->preferred_time_slot ?? null)
+                    ->helperText('Auto-filled from preferred time slot'),
                 Select::make('status')
                     ->required()
                     ->default('pending')
@@ -54,12 +55,15 @@ class SchedulesRelationManager extends RelationManager
                     ->label('Estimated Duration (minutes)')
                     ->numeric()
                     ->minValue(0)
-                    ->default(60)
-                    ->suffix('min'),
+                    ->default(fn($livewire) => $livewire?->ownerRecord?->service?->average_duration_minutes ?? 60)
+                    ->suffix('min')
+                    ->helperText('Auto-filled from service average duration'),
                 Textarea::make('location')
                     ->rows(2)
                     ->columnSpanFull()
-                    ->placeholder('Enter service location address'),
+                    ->placeholder('Enter service location address')
+                    ->default(fn($livewire) => $livewire?->ownerRecord?->service_location ?? null)
+                    ->helperText('Auto-filled from service request'),
                 RichEditor::make('notes')
                     ->columnSpanFull()
                     ->toolbarButtons([

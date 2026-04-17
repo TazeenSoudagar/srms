@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ServiceRequest\Schemas;
 use App\Enums\RequestPriority;
 use App\Enums\RequestStatus;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -33,6 +34,17 @@ class ServiceRequestForm
                 Textarea::make('description')
                     ->rows(6)
                     ->columnSpanFull(),
+                DateTimePicker::make('preferred_time_slot')
+                    ->label('Preferred Time Slot')
+                    ->seconds(false)
+                    ->native(false)
+                    ->displayFormat('M d, Y H:i')
+                    ->columnSpan(1),
+                Textarea::make('service_location')
+                    ->label('Service Location')
+                    ->rows(3)
+                    ->columnSpanFull()
+                    ->placeholder('Address where service is needed'),
                 Select::make('status')
                     ->options(RequestStatus::options())
                     ->required()
@@ -47,12 +59,6 @@ class ServiceRequestForm
                     ->relationship('createdBy', 'first_name')
                     ->disabled()
                     ->dehydrated()
-                    ->columnSpan(1),
-                Select::make('assigned_to')
-                    ->relationship('assignedTo', 'first_name', fn($query) => $query->whereHas('role', fn($q) => $q->where('name', 'Support Engineer')))
-                    ->searchable()
-
-                    ->preload()
                     ->columnSpan(1),
                 DatePicker::make('due_date')
                     ->columnSpan(1),

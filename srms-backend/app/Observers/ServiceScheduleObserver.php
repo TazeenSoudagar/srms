@@ -2,7 +2,9 @@
 
 namespace App\Observers;
 
+use App\Events\ScheduleUpdated;
 use App\Models\ServiceSchedule;
+use App\Notifications\ScheduleStatusUpdated;
 
 class ServiceScheduleObserver
 {
@@ -11,7 +13,6 @@ class ServiceScheduleObserver
      */
     public function creating(ServiceSchedule $serviceSchedule): void
     {
-        // If creating a schedule with status 'completed', set completed_at
         if ($serviceSchedule->status === 'completed' && ! $serviceSchedule->completed_at) {
             $serviceSchedule->completed_at = now();
         }
@@ -22,44 +23,112 @@ class ServiceScheduleObserver
      */
     public function updating(ServiceSchedule $serviceSchedule): void
     {
-        // Check if status is changing to 'completed'
-        if ($serviceSchedule->isDirty('status')) {
-            $newStatus = $serviceSchedule->status;
-            $oldStatus = $serviceSchedule->getOriginal('status');
-
-            // If changing to 'completed', set completed_at timestamp
-            if ($newStatus === 'completed' && ! $serviceSchedule->completed_at) {
-                $serviceSchedule->completed_at = now();
-            }
-
-            // If changing from 'completed' to another status, clear completed_at
-            if ($oldStatus === 'completed' && $newStatus !== 'completed') {
-                $serviceSchedule->completed_at = null;
-            }
+        if (! $serviceSchedule->isDirty('status')) {
+            return;
         }
+
+        $newStatus = $serviceSchedule->status;
+        $oldStatus = $serviceSchedule->getOriginal('status');
+
+        if ($newStatus === 'completed' && ! $serviceSchedule->completed_at) {
+            $serviceSchedule->completed_at = now();
+        }
+
+        if ($oldStatus === 'completed' && $newStatus !== 'completed') {
+            $serviceSchedule->completed_at = null;
+        }
+    }
+
+    /**
+     * Handle the ServiceSchedule "updated" event.
+     * Syncs the parent ServiceRequest status, broadcasts the change,
+     * and notifies the customer when the schedule status changes.
+     */
+    public function updated(ServiceSchedule $serviceSchedule): void
+    {
+        if (! $serviceSchedule->wasChanged('status')) {
+            return;
+        }
+
+        $oldStatus = $serviceSchedule->getOriginal('status');
+
+        $this->syncRequestStatus($serviceSchedule);
+
+        // Ensure relations are loaded for the broadcast payload
+        $serviceSchedule->loadMissing(['customer', 'engineer', 'serviceRequest']);
+
+        broadcast(new ScheduleUpdated($serviceSchedule));
+
+        $serviceSchedule->customer?->notify(
+            new ScheduleStatusUpdated($serviceSchedule, $oldStatus)
+        );
+    }
+
+    /**
+     * Derive and apply the correct ServiceRequest status from all its schedules.
+     *
+     * Rules:
+     * - Any schedule completed           → request closed
+     * - All schedules cancelled          → request reverts to open
+     * - Any schedule active (non-cancelled, non-completed) → request in_progress
+     */
+    private function syncRequestStatus(ServiceSchedule $serviceSchedule): void
+    {
+        $request = $serviceSchedule->serviceRequest;
+
+        if (! $request) {
+            return;
+        }
+
+        // Never touch a request that was explicitly closed or cancelled by a user action
+        if (in_array($request->status?->value ?? $request->status, ['closed', 'cancelled'])) {
+            return;
+        }
+
+        $statuses = $request->schedules()->pluck('status')->all();
+
+        $newRequestStatus = $this->deriveRequestStatus($statuses);
+
+        $update = ['status' => $newRequestStatus];
+
+        if ($newRequestStatus === 'closed') {
+            $update['closed_at'] = now();
+        } elseif ($newRequestStatus === 'open') {
+            $update['closed_at'] = null;
+        }
+
+        $request->update($update);
+    }
+
+    /**
+     * Derive the request status from a list of schedule statuses.
+     */
+    private function deriveRequestStatus(array $statuses): string
+    {
+        if (in_array('completed', $statuses)) {
+            return 'closed';
+        }
+
+        $nonCancelled = array_filter($statuses, fn ($s) => $s !== 'cancelled');
+
+        return empty($nonCancelled) ? 'open' : 'in_progress';
     }
 
     /**
      * Handle the ServiceSchedule "deleted" event.
      */
-    public function deleted(ServiceSchedule $serviceSchedule): void
+    public function deleted(ServiceSchedule $_): void
     {
-        //
+        // No action needed on delete
     }
 
-    /**
-     * Handle the ServiceSchedule "restored" event.
-     */
-    public function restored(ServiceSchedule $serviceSchedule): void
+    public function restored(ServiceSchedule $_): void
     {
-        //
+        // No action needed on restore
     }
 
-    /**
-     * Handle the ServiceSchedule "force deleted" event.
-     */
-    public function forceDeleted(ServiceSchedule $serviceSchedule): void
+    public function forceDeleted(ServiceSchedule $_): void
     {
-        //
+        // No action needed on force delete
     }
 }

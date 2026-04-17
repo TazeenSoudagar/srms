@@ -28,12 +28,29 @@ class ServiceRequestResource extends JsonResource
             'service' => new ServiceResource($this->whenLoaded('service')),
             'title' => $this->title,
             'description' => $this->description,
+            'preferred_time_slot' => $this->preferred_time_slot?->toISOString(),
+            'service_location' => $this->service_location,
             'status' => $this->status?->value ?? $this->status,
             'priority' => $this->priority?->value ?? $this->priority,
             'created_by' => new UserResource($this->whenLoaded('createdBy')),
-            'assigned_to' => new UserResource($this->whenLoaded('assignedTo')),
             'updated_by' => new UserResource($this->whenLoaded('updatedBy')),
+            'schedules' => $this->when($this->relationLoaded('schedules'), function () use ($hashidsService) {
+                return $this->schedules->map(function ($schedule) use ($hashidsService) {
+                    return [
+                        'id' => $hashidsService->encode($schedule->id),
+                        'engineer' => $schedule->engineer ? [
+                            'id' => $hashidsService->encode($schedule->engineer->id),
+                            'first_name' => $schedule->engineer->first_name,
+                            'last_name' => $schedule->engineer->last_name,
+                            'email' => $schedule->engineer->email,
+                        ] : null,
+                        'scheduled_at' => $schedule->scheduled_at?->toISOString(),
+                        'status' => $schedule->status,
+                    ];
+                });
+            }),
             'due_date' => $this->due_date?->toDateString(),
+            'estimated_duration_minutes' => $this->service?->average_duration_minutes,
             'closed_at' => $this->closed_at?->toISOString(),
             'is_active' => $this->is_active,
             'comments' => CommentResource::collection($this->whenLoaded('comments')),

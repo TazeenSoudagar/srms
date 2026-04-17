@@ -22,6 +22,7 @@ import {
   AlertCircle,
   ChevronRight,
 } from "lucide-react";
+import { getEcho } from "@/lib/echo";
 import { toast } from "sonner";
 import Container from "@/components/layout/Container";
 import Card from "@/components/common/Card";
@@ -289,6 +290,28 @@ export default function RequestDetailPage() {
       fetchAll();
     }
   }, [requestId]);
+
+  // ── Real-time: reload when a new schedule is broadcast ──────────────────────
+  useEffect(() => {
+    if (!user?.id) return;
+
+    let mounted = true;
+    const channelName = `user.${user.id}`;
+
+    getEcho().then((echo) => {
+      if (!echo || !mounted) return;
+      const channel = echo.channel(channelName);
+      channel.listen('.schedule.created', () => { fetchAll(); });
+      channel.listen('.schedule.updated', () => { fetchAll(); });
+    });
+
+    return () => {
+      mounted = false;
+      getEcho().then((echo) => echo?.leaveChannel(channelName));
+    };
+    // fetchAll is stable for the lifetime of the component mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const fetchAll = async () => {
     try {
@@ -698,44 +721,98 @@ export default function RequestDetailPage() {
             {/* ── Right Column (sidebar) ── */}
             <div className="space-y-6">
 
-              {/* Assigned Engineer */}
-              {request.assigned_to ? (
-                <Card>
-                  <div className="p-5">
-                    <h3 className="text-sm font-semibold text-neutral-700 mb-3">
-                      Assigned Engineer
+              {/* Service Schedule */}
+              <Card>
+                <div className="p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Calendar className="h-4 w-4 text-primary-500" />
+                    <h3 className="text-sm font-semibold text-neutral-700">
+                      Service Schedule
                     </h3>
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-accent-400 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                        {request.assigned_to.first_name?.[0]?.toUpperCase() || "?"}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-neutral-900">
-                          {request.assigned_to.first_name}{" "}
-                          {request.assigned_to.last_name}
-                        </p>
-                        {request.assigned_to.email && (
-                          <p className="text-xs text-neutral-500">
-                            {request.assigned_to.email}
-                          </p>
-                        )}
-                      </div>
-                    </div>
                   </div>
-                </Card>
-              ) : (
-                <Card>
-                  <div className="p-5">
-                    <h3 className="text-sm font-semibold text-neutral-700 mb-2">
-                      Assigned Engineer
-                    </h3>
+
+                  {request.schedules && request.schedules.length > 0 ? (
+                    <div className="space-y-4">
+                      {request.schedules.map((schedule, idx) => {
+                        const scheduleStatusConfig: Record<
+                          string,
+                          { label: string; className: string }
+                        > = {
+                          pending: {
+                            label: "Pending",
+                            className: "bg-yellow-100 text-yellow-700",
+                          },
+                          confirmed: {
+                            label: "Confirmed",
+                            className: "bg-blue-100 text-blue-700",
+                          },
+                          in_progress: {
+                            label: "In Progress",
+                            className: "bg-orange-100 text-orange-700",
+                          },
+                          completed: {
+                            label: "Completed",
+                            className: "bg-green-100 text-green-700",
+                          },
+                          cancelled: {
+                            label: "Cancelled",
+                            className: "bg-red-100 text-red-700",
+                          },
+                        };
+                        const statusInfo = scheduleStatusConfig[schedule.status] ?? {
+                          label: schedule.status,
+                          className: "bg-neutral-100 text-neutral-600",
+                        };
+
+                        return (
+                          <div key={schedule.id}>
+                            {idx > 0 && (
+                              <div className="border-t border-neutral-100 mb-4" />
+                            )}
+                            {/* Engineer row */}
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-accent-400 flex items-center justify-center text-white font-bold flex-shrink-0">
+                                {schedule.engineer.first_name?.[0]?.toUpperCase() ?? "?"}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-sm font-semibold text-neutral-900 truncate">
+                                  {schedule.engineer.first_name}{" "}
+                                  {schedule.engineer.last_name}
+                                </p>
+                                {schedule.engineer.email && (
+                                  <p className="text-xs text-neutral-500 truncate">
+                                    {schedule.engineer.email}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Date/time row */}
+                            <div className="flex items-start gap-2 mb-2">
+                              <Clock className="h-3.5 w-3.5 text-neutral-400 mt-0.5 flex-shrink-0" />
+                              <p className="text-xs text-neutral-600">
+                                {new Date(schedule.scheduled_at).toLocaleString()}
+                              </p>
+                            </div>
+
+                            {/* Status badge */}
+                            <span
+                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusInfo.className}`}
+                            >
+                              {statusInfo.label}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
                     <div className="flex items-center gap-3 text-neutral-400">
-                      <User className="h-8 w-8" />
-                      <p className="text-sm">Not yet assigned</p>
+                      <Calendar className="h-8 w-8 opacity-40" />
+                      <p className="text-sm">Not yet scheduled</p>
                     </div>
-                  </div>
-                </Card>
-              )}
+                  )}
+                </div>
+              </Card>
 
               {/* Quick Stats */}
               <Card>

@@ -9,6 +9,7 @@ use App\Http\Requests\StoreServiceScheduleRequest;
 use App\Http\Requests\UpdateServiceScheduleRequest;
 use App\Http\Resources\ServiceScheduleResource;
 use App\Models\ServiceSchedule;
+use App\Notifications\ScheduleCreated as ScheduleCreatedNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -72,6 +73,9 @@ class ServiceScheduleController extends Controller
 
         // Broadcast the event
         broadcast(new ScheduleCreated($schedule))->toOthers();
+
+        // Send database notification to the customer
+        $schedule->customer?->notify(new ScheduleCreatedNotification($schedule));
 
         return response()->json([
             'message' => 'Schedule created successfully',

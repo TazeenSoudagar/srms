@@ -5,7 +5,6 @@ namespace App\Filament\Resources\Users\RelationManagers;
 use App\Filament\Resources\ServiceRequest\ServiceRequestResource;
 use Filament\Actions;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 
@@ -14,6 +13,11 @@ class RatingsReceivedRelationManager extends RelationManager
     protected static string $relationship = 'ratingsReceived';
 
     protected static ?string $title = 'Ratings Received (As Engineer)';
+
+    public static function canViewForRecord(\Illuminate\Database\Eloquent\Model $ownerRecord, string $pageClass): bool
+    {
+        return $ownerRecord->role?->name === 'Support Engineer';
+    }
 
     public function table(Table $table): Table
     {

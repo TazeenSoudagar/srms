@@ -90,6 +90,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('service-requests/{serviceRequest}/media/{media}', [\App\Http\Controllers\Api\MediaController::class, 'show']);
     Route::delete('service-requests/{serviceRequest}/media/{media}', [\App\Http\Controllers\Api\MediaController::class, 'destroy']);
 
+    // Notifications
+    Route::get('notifications/unread-count', [\App\Http\Controllers\Api\NotificationController::class, 'unreadCount']);
+    Route::post('notifications/read-all', [\App\Http\Controllers\Api\NotificationController::class, 'markAllAsRead']);
+    Route::get('notifications', [\App\Http\Controllers\Api\NotificationController::class, 'index']);
+    Route::post('notifications/{id}/read', [\App\Http\Controllers\Api\NotificationController::class, 'markAsRead']);
+
     // Activity Logs (admin only)
     Route::get('activity-logs', [\App\Http\Controllers\Api\ActivityLogController::class, 'index']);
     Route::get('activity-logs/{activityLog}', [\App\Http\Controllers\Api\ActivityLogController::class, 'show']);

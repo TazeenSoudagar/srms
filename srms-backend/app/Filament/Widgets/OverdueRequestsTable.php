@@ -34,7 +34,7 @@ class OverdueRequestsTable extends BaseWidget
                     ->dateTime()
                     ->color('danger')
                     ->icon('heroicon-o-exclamation-triangle'),
-                Tables\Columns\TextColumn::make('assignedTo.name')
+                Tables\Columns\TextColumn::make('schedules.0.engineer.name')
                     ->label('Engineer')
                     ->placeholder('Unassigned'),
                 Tables\Columns\TextColumn::make('status')
