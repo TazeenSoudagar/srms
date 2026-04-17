@@ -30,15 +30,32 @@ class ServiceScheduleForm
                             ->reactive()
                             ->afterStateUpdated(function ($state, callable $set) {
                                 if ($state) {
-                                    $serviceRequest = ServiceRequest::find($state);
+                                    $serviceRequest = ServiceRequest::with('service')->find($state);
                                     if ($serviceRequest) {
+                                        // Auto-fill customer from request
                                         $set('customer_id', $serviceRequest->created_by);
-                                        $set('engineer_id', $serviceRequest->assigned_to);
+
+                                        // Auto-fill scheduled_at from preferred_time_slot
+                                        if ($serviceRequest->preferred_time_slot) {
+                                            $set('scheduled_at', $serviceRequest->preferred_time_slot);
+                                        }
+
+                                        // Auto-fill estimated duration from service
+                                        if ($serviceRequest->service?->average_duration_minutes) {
+                                            $set('estimated_duration_minutes', $serviceRequest->service->average_duration_minutes);
+                                        }
+
+                                        // Auto-fill location from service request
+                                        if ($serviceRequest->service_location) {
+                                            $set('location', $serviceRequest->service_location);
+                                        }
                                     }
                                 } else {
-                                    // Clear both fields when service request is cleared
+                                    // Clear fields when service request is cleared
                                     $set('customer_id', null);
-                                    $set('engineer_id', null);
+                                    $set('scheduled_at', null);
+                                    $set('estimated_duration_minutes', null);
+                                    $set('location', null);
                                 }
                             }),
                         Select::make('customer_id')
@@ -59,8 +76,7 @@ class ServiceScheduleForm
                             ->required()
                             ->searchable()
                             ->preload()
-                            ->disabled(fn ($get) => $get('service_request_id') !== null && $get('engineer_id') !== null)
-                            ->helperText('Auto-filled from service request if assigned'),
+                            ->helperText('Select the engineer to assign this schedule'),
                     ])
                     ->columns(3)
                     ->columnSpanFull(),

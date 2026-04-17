@@ -26,12 +26,17 @@ export interface ServiceRequest {
     phone?: string;
     email?: string;
   };
-  assigned_to?: {
+  schedules?: Array<{
     id: string;
-    first_name: string;
-    last_name: string;
-    email?: string;
-  };
+    engineer: {
+      id: string;
+      first_name: string;
+      last_name: string;
+      email?: string;
+    };
+    scheduled_at: string;
+    status: string;
+  }>;
   due_date?: string;
   closed_at?: string;
   is_active: boolean;

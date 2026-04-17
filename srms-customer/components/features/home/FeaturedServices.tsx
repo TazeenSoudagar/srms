@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { ChevronLeft, ChevronRight, Star } from "lucide-react";
 import Container from "@/components/layout/Container";
 import Card from "@/components/common/Card";
@@ -95,12 +94,10 @@ export default function FeaturedServices() {
                   {/* Service Image */}
                   <div className="relative h-48 w-full overflow-hidden bg-neutral-200">
                     {service.image && (
-                      <Image
+                      <img
                         src={service.image}
                         alt={service.name}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="h-full w-full object-cover"
                       />
                     )}
                     {service.isPopular && (

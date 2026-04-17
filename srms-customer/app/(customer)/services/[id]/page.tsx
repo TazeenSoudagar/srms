@@ -172,9 +172,10 @@ export default function ServiceDetailsPage() {
                 )}
                 {service.isPopular && (
                   <div className="absolute top-4 right-4">
-                    <Badge variant="warning" size="lg" className="shadow-lg">
-                      ⭐ Popular
-                    </Badge>
+                    <span className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1.5 rounded-md text-sm font-semibold shadow-md">
+                      <Star className="h-3.5 w-3.5 fill-current" />
+                      Popular
+                    </span>
                   </div>
                 )}
               </div>
@@ -183,24 +184,24 @@ export default function ServiceDetailsPage() {
             {/* Right: Service Info */}
             <div className="order-1 lg:order-2 flex flex-col justify-center">
               {/* Category Badge */}
-              <div className="mb-4">
-                <Badge variant="primary" size="lg">
+              <div className="mb-3">
+                <Badge variant="primary" size="md">
                   {service.category.name}
                 </Badge>
               </div>
 
               {/* Service Name */}
-              <h1 className="mb-4">{service.name}</h1>
+              <h1 className="text-3xl md:text-4xl mb-3">{service.name}</h1>
 
               {/* Rating */}
               {service.rating && (
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="flex items-center gap-1 bg-green-600 text-white px-3 py-1.5 rounded-lg">
-                    <Star className="h-4 w-4 fill-current" />
-                    <span className="font-bold">{service.rating}</span>
+                <div className="flex items-center gap-2.5 mb-4">
+                  <div className="flex items-center gap-1 bg-green-600 text-white px-2.5 py-1 rounded-md text-sm font-semibold">
+                    <Star className="h-3.5 w-3.5 fill-current" />
+                    <span>{service.rating}</span>
                   </div>
                   {service.reviewCount && (
-                    <span className="text-neutral-600">
+                    <span className="text-neutral-600 text-sm">
                       {service.reviewCount.toLocaleString()} reviews
                     </span>
                   )}
@@ -208,14 +209,14 @@ export default function ServiceDetailsPage() {
               )}
 
               {/* Description */}
-              <p className="text-lg text-neutral-700 mb-6 leading-relaxed">
+              <p className="text-base text-neutral-700 mb-5 leading-relaxed">
                 {service.description}
               </p>
 
               {/* Duration */}
               {service.averageDuration && (
-                <div className="flex items-center gap-2 text-neutral-600 mb-6">
-                  <Clock className="h-5 w-5 text-primary-600" />
+                <div className="flex items-center gap-2 text-neutral-600 text-sm mb-5">
+                  <Clock className="h-4 w-4 text-primary-600" />
                   <span>
                     Average duration: {Math.floor(service.averageDuration / 60)}h{" "}
                     {service.averageDuration % 60}m
@@ -224,24 +225,24 @@ export default function ServiceDetailsPage() {
               )}
 
               {/* Pricing and CTA */}
-              <div className="bg-white rounded-xl p-6 shadow-lg border border-neutral-200">
+              <div className="bg-white rounded-lg p-5 shadow-md border border-neutral-200">
                 <div className="flex items-end justify-between mb-4">
                   <div>
-                    <p className="text-sm text-neutral-500 mb-1">Starting at</p>
-                    <p className="text-4xl font-bold text-primary-600">
+                    <p className="text-xs text-neutral-500 mb-1">Starting at</p>
+                    <p className="text-3xl font-bold text-primary-600">
                       {formatPrice(service.basePrice)}
                     </p>
                   </div>
-                  <p className="text-sm text-neutral-500">+ applicable taxes</p>
+                  <p className="text-xs text-neutral-500">+ applicable taxes</p>
                 </div>
                 <Button
-                  size="xl"
-                  className="w-full shadow-lg hover:shadow-xl"
+                  size="lg"
+                  className="w-full"
                   onClick={handleBookService}
                 >
                   Book Now
                 </Button>
-                <p className="text-xs text-neutral-500 text-center mt-3">
+                <p className="text-xs text-neutral-500 text-center mt-2.5">
                   Final price will be confirmed after assessment
                 </p>
               </div>
@@ -340,7 +341,7 @@ export default function ServiceDetailsPage() {
             <div className="flex items-center justify-between mb-8">
               <h2>Related Services</h2>
               <Link
-                href={`/services?category=${service.category.id}`}
+                href={`/services?category=${service.category.slug || service.category.id}`}
                 className="text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
               >
                 View All
@@ -397,12 +398,12 @@ export default function ServiceDetailsPage() {
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-200 p-4 shadow-lg z-10">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm text-neutral-500">Starting at</p>
-            <p className="text-2xl font-bold text-primary-600">
+            <p className="text-xs text-neutral-500">Starting at</p>
+            <p className="text-xl font-bold text-primary-600">
               {formatPrice(service.basePrice)}
             </p>
           </div>
-          <Button size="lg" onClick={handleBookService} className="flex-1 max-w-xs">
+          <Button size="md" onClick={handleBookService} className="flex-1 max-w-xs">
             Book Now
           </Button>
         </div>

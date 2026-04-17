@@ -29,7 +29,7 @@ class RecentServiceRequestsTable extends BaseWidget
                     ->badge(),
                 Tables\Columns\TextColumn::make('priority')
                     ->badge(),
-                Tables\Columns\TextColumn::make('assignedTo.name')
+                Tables\Columns\TextColumn::make('schedules.0.engineer.name')
                     ->label('Engineer')
                     ->placeholder('Unassigned'),
                 Tables\Columns\TextColumn::make('created_at')

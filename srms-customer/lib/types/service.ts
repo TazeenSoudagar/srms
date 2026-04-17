@@ -6,6 +6,7 @@ export interface Service {
   category: {
     id: string;
     name: string;
+    slug?: string;
     icon?: string;
   };
   rating?: number;
@@ -25,6 +26,7 @@ export interface Service {
 export interface ServiceCategory {
   id: string;
   name: string;
+  slug?: string;
   description?: string;
   icon?: string;
   isActive: boolean;

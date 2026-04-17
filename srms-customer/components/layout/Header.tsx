@@ -6,6 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Menu, X, User, Phone, Home, LogOut, UserCircle, FileText, ChevronDown } from "lucide-react";
 import Container from "./Container";
 import Button from "../common/Button";
+import NotificationBell from "../notifications/NotificationBell";
 import { cn } from "@/lib/utils/cn";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -99,6 +100,7 @@ export default function Header() {
                     Book Service
                   </Button>
                 </Link>
+                <NotificationBell />
                 {/* User Menu */}
                 <div className="relative" ref={userMenuRef}>
                   <button

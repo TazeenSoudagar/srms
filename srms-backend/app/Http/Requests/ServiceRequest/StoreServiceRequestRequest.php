@@ -51,6 +51,8 @@ class StoreServiceRequestRequest extends FormRequest
             'service_id' => ['required', 'integer', 'exists:services,id'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
+            'preferred_time_slot' => ['nullable', 'date', 'after:now'],
+            'service_location' => ['nullable', 'string', 'max:1000'],
             'priority' => ['nullable', 'string', Rule::enum(RequestPriority::class)],
             'due_date' => ['nullable', 'date', 'after:today'],
         ];
@@ -68,6 +70,8 @@ class StoreServiceRequestRequest extends FormRequest
             'service_id.exists' => 'The selected service does not exist.',
             'title.required' => 'Title is required.',
             'title.max' => 'Title cannot exceed 255 characters.',
+            'preferred_time_slot.date' => 'Preferred time slot must be a valid date.',
+            'preferred_time_slot.after' => 'Preferred time slot must be in the future.',
             'priority.required' => 'Priority is required.',
             'priority.enum' => 'Invalid priority value.',
             'due_date.date' => 'Due date must be a valid date.',
