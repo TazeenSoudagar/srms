@@ -108,6 +108,18 @@ export const serviceRequestsApi = {
     });
     return response.data;
   },
+
+  /**
+   * Verify service completion OTP sent by the engineer.
+   * On success, the service request is marked as closed.
+   */
+  verifyCompletion: async (id: string, otp: string): Promise<ApiResponse<ServiceRequest>> => {
+    const response = await apiClient.post<ApiResponse<ServiceRequest>>(
+      `/service-requests/${id}/verify-completion`,
+      { otp }
+    );
+    return response.data;
+  },
 };
 
 export const commentsApi = {

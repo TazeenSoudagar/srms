@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -83,7 +84,15 @@ class User extends Authenticatable
      */
     public function avatar(): MorphOne
     {
-        return $this->morphOne(Media::class, 'mediaable');
+        return $this->morphOne(Media::class, 'mediaable')->where('collection', 'avatar');
+    }
+
+    /**
+     * Get the engineer's uploaded documents (e.g., ID proof, certificates).
+     */
+    public function documents(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Media::class, 'mediaable')->where('collection', 'documents');
     }
 
     /**

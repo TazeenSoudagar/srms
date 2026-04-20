@@ -76,6 +76,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('service-requests/{serviceRequest}/status', [\App\Http\Controllers\Api\ServiceRequestController::class, 'updateStatus']);
     Route::post('service-requests/{serviceRequest}/close', [\App\Http\Controllers\Api\ServiceRequestController::class, 'close']);
     Route::post('service-requests/{serviceRequest}/cancel', [\App\Http\Controllers\Api\ServiceRequestController::class, 'cancel']);
+    Route::post('service-requests/{serviceRequest}/request-completion', [\App\Http\Controllers\Api\ServiceCompletionController::class, 'requestCompletion']);
+    Route::post('service-requests/{serviceRequest}/verify-completion', [\App\Http\Controllers\Api\ServiceCompletionController::class, 'verifyCompletion']);
 
     // Comments (nested under service requests)
     Route::get('service-requests/{serviceRequest}/comments', [\App\Http\Controllers\Api\CommentController::class, 'index']);

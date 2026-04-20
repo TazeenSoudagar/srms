@@ -60,10 +60,31 @@ class CommentController extends Controller
             'service_request_number' => $serviceRequest->request_number,
         ]);
 
-        // Notify admins and support engineers when a customer adds a comment
-        if ($user->role?->name === 'Client') {
-            $admins = User::whereHas('role', fn ($q) => $q->whereIn('name', ['Admin', 'Support Engineer']))->get();
+        $roleName = $user->role?->name;
+
+        if ($roleName === 'Client') {
+            // Customer commented — notify admins and the assigned engineer
+            $admins = User::whereHas('role', fn ($q) => $q->where('name', 'Admin'))->get();
             Notification::send($admins, new AdminNewComment($comment, $serviceRequest));
+
+            $serviceRequest->loadMissing('schedules.engineer');
+            $serviceRequest->schedules->each(function ($schedule) use ($comment, $serviceRequest, $user) {
+                if ($schedule->engineer && $schedule->engineer->id !== $user->id) {
+                    $schedule->engineer->notify(new NewCommentAdded($comment));
+                }
+            });
+        } elseif (\in_array($roleName, ['Support Engineer', 'Admin'], true)) {
+            // Engineer or admin commented — notify the customer
+            $customer = User::find($serviceRequest->created_by);
+            if ($customer && $customer->id !== $user->id) {
+                $customer->notify(new NewCommentAdded($comment));
+            }
+
+            // Also notify admins if a support engineer commented
+            if ($roleName === 'Support Engineer') {
+                $admins = User::whereHas('role', fn ($q) => $q->where('name', 'Admin'))->get();
+                Notification::send($admins, new AdminNewComment($comment, $serviceRequest));
+            }
         }
 
         return (new CommentResource($comment))
