@@ -29,7 +29,7 @@ class SendOtpRequest extends FormRequest
                 'email',
                 Rule::exists('users', 'email'),
             ],
-            'type' => ['required', 'string', Rule::in(['login', 'password-reset'])],
+            'type' => ['required', 'string', Rule::in(['login', 'password-reset', 'service_completion'])],
         ];
     }
 
@@ -51,10 +51,24 @@ class SendOtpRequest extends FormRequest
         $validator->after(function ($validator) {
             $user = User::where('email', $this->email)->first();
 
-            if ($user && ! $user->is_active) {
+            if (! $user) {
+                return;
+            }
+
+            if (! $user->is_active) {
                 $validator->errors()->add(
                     'email',
                     'Please complete your registration. Check your email for the verification code or register again to resend OTP.'
+                );
+
+                return;
+            }
+
+            // Engineers must have documents uploaded by admin before they can log in
+            if ($user->role?->name === 'Support Engineer' && ! $user->documents()->exists()) {
+                    $validator->errors()->add(
+                    'email',
+                    'Your account is not yet fully set up. Please contact admin to upload your verification documents before logging in.'
                 );
             }
         });

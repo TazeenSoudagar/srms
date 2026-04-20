@@ -120,6 +120,27 @@ class UserForm
                     ->visible(fn (Get $get) => $get('role_id') == 2) // Assuming role_id 2 is Support Engineer
                     ->collapsible(),
 
+                Section::make('Engineer Documents')
+                    ->description('Upload verification documents for the engineer (ID proof, certifications, etc.). Engineers cannot log in without at least one document.')
+                    ->schema([
+                        FileUpload::make('engineer_documents')
+                            ->label('Documents')
+                            ->multiple()
+                            ->disk('public')
+                            ->directory('engineer-documents')
+                            ->maxSize(5120)
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'application/pdf'])
+                            ->downloadable()
+                            ->openable()
+                            ->previewable()
+                            ->reorderable()
+                            ->columnSpanFull()
+                            ->helperText('Accepted: JPG, PNG, WEBP, PDF. Max 5MB per file. Engineers must have at least one document to log in.'),
+                    ])
+                    ->columnSpanFull()
+                    ->visible(fn (Get $get) => $get('role_id') == 2)
+                    ->collapsible(),
+
                 Section::make('Location Information')
                     ->schema([
                         Textarea::make('address')

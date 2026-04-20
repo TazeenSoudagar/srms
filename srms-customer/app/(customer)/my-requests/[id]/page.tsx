@@ -365,6 +365,11 @@ export default function RequestDetailPage() {
   // Rating modal state
   const [showRatingModal, setShowRatingModal] = useState(false);
 
+  // Service completion OTP state
+  const [showCompletionOtp, setShowCompletionOtp] = useState(false);
+  const [completionOtp, setCompletionOtp] = useState("");
+  const [verifyingCompletion, setVerifyingCompletion] = useState(false);
+
   const commentsEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -499,6 +504,26 @@ export default function RequestDetailPage() {
       console.error("Error cancelling request:", err);
     } finally {
       setCancelling(false);
+    }
+  };
+
+  const handleVerifyCompletion = async () => {
+    if (!completionOtp.trim() || completionOtp.length !== 6) {
+      toast.error("Please enter the 6-digit OTP.");
+      return;
+    }
+    setVerifyingCompletion(true);
+    try {
+      const res = await serviceRequestsApi.verifyCompletion(requestId, completionOtp);
+      setRequest(res.data);
+      setShowCompletionOtp(false);
+      setCompletionOtp("");
+      toast.success("Service completion confirmed! The request is now closed.");
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Invalid or expired OTP.";
+      toast.error(msg);
+    } finally {
+      setVerifyingCompletion(false);
     }
   };
 
@@ -1137,6 +1162,57 @@ export default function RequestDetailPage() {
               </Card>
 
               {/* Actions */}
+              {/* Service Completion OTP — shown when engineer has triggered completion */}
+              {request.status === "in_progress" && (
+                <Card>
+                  <div className="p-5">
+                    <h3 className="text-sm font-semibold text-neutral-700 mb-1">
+                      Confirm Service Completion
+                    </h3>
+                    <p className="text-xs text-neutral-500 mb-3">
+                      If the engineer has completed the service, enter the 6-digit OTP sent to your email to confirm and close this request.
+                    </p>
+                    {!showCompletionOtp ? (
+                      <button
+                        onClick={() => setShowCompletionOtp(true)}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-green-200 text-green-700 text-sm font-medium hover:bg-green-50 transition-colors"
+                      >
+                        <CheckCircle2 className="h-4 w-4" />
+                        Enter Completion OTP
+                      </button>
+                    ) : (
+                      <div className="space-y-3">
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={6}
+                          value={completionOtp}
+                          onChange={(e) => setCompletionOtp(e.target.value.replace(/\D/g, ""))}
+                          placeholder="Enter 6-digit OTP"
+                          className="w-full px-4 py-2.5 rounded-lg border border-neutral-300 text-center text-lg tracking-widest font-mono focus:outline-none focus:ring-2 focus:ring-green-500"
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => { setShowCompletionOtp(false); setCompletionOtp(""); }}
+                            className="flex-1 px-3 py-2 rounded-lg border border-neutral-200 text-sm text-neutral-600 hover:bg-neutral-50"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={handleVerifyCompletion}
+                            disabled={verifyingCompletion || completionOtp.length !== 6}
+                            className="flex-1 px-3 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-1"
+                          >
+                            {verifyingCompletion ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+                            Confirm
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              )}
+
               {canCancel && (
                 <Card>
                   <div className="p-5">

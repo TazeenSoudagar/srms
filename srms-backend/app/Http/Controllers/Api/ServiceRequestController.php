@@ -283,10 +283,13 @@ class ServiceRequestController extends Controller
         }
 
         $serviceRequest->update($updateData);
-        $serviceRequest->load(['service', 'createdBy', 'updatedBy']);
+        $serviceRequest->load(['service', 'createdBy', 'updatedBy', 'schedules.engineer']);
 
         // Log activity
         ActivityLogService::logStatusChanged($user, $serviceRequest, $oldStatus, $newStatus);
+
+        // Notify relevant parties of status change
+        $this->notifyStatusChange($serviceRequest, $oldStatus, $newStatus, $user);
 
         return new ServiceRequestResource($serviceRequest);
     }
@@ -307,14 +310,47 @@ class ServiceRequestController extends Controller
             'updated_by' => $user->id,
         ]);
 
-        $serviceRequest->load(['service', 'createdBy', 'updatedBy']);
+        $serviceRequest->load(['service', 'createdBy', 'updatedBy', 'schedules.engineer']);
 
         // Log activity
         ActivityLogService::logClosed($user, $serviceRequest, [
             'previous_status' => $oldStatus,
         ]);
 
+        // Notify relevant parties
+        $this->notifyStatusChange($serviceRequest, $oldStatus, 'closed', $user);
+
         return new ServiceRequestResource($serviceRequest);
+    }
+
+    private function notifyStatusChange(
+        ServiceRequest $serviceRequest,
+        string $oldStatus,
+        string $newStatus,
+        User $actor
+    ): void {
+        $notification = new \App\Notifications\ServiceRequestStatusChanged($serviceRequest, $oldStatus, $newStatus);
+
+        // Notify customer (unless they triggered the change)
+        $customer = User::find($serviceRequest->created_by);
+        if ($customer && $customer->id !== $actor->id) {
+            $customer->notify($notification);
+        }
+
+        // Notify assigned engineers (unless one of them triggered the change)
+        $serviceRequest->schedules->each(function ($schedule) use ($notification, $actor) {
+            if ($schedule->engineer && $schedule->engineer->id !== $actor->id) {
+                $schedule->engineer->notify($notification);
+            }
+        });
+
+        // Notify admins
+        $admins = User::whereHas('role', fn ($q) => $q->where('name', 'Admin'))->get();
+        $admins->each(function ($admin) use ($notification, $actor) {
+            if ($admin->id !== $actor->id) {
+                $admin->notify($notification);
+            }
+        });
     }
 
     /**
