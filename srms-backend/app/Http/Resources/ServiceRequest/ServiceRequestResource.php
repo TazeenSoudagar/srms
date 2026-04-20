@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources\ServiceRequest;
 
 use App\Http\Resources\CommentResource;
+use App\Http\Resources\RatingResource;
 use App\Http\Resources\ServiceResource;
 use App\Http\Resources\UserResource;
 use App\Services\HashidsService;
@@ -45,7 +46,17 @@ class ServiceRequestResource extends JsonResource
                             'email' => $schedule->engineer->email,
                         ] : null,
                         'scheduled_at' => $schedule->scheduled_at?->toISOString(),
+                        'completed_at' => $schedule->completed_at?->toISOString(),
                         'status' => $schedule->status,
+                        'actual_price' => $schedule->actual_price,
+                        'gst_rate' => $schedule->gst_rate,
+                        'gst_amount' => $schedule->gst_amount,
+                        'total_amount' => $schedule->total_amount,
+                        'invoice' => $schedule->relationLoaded('invoice') && $schedule->invoice ? [
+                            'invoice_number' => $schedule->invoice->invoice_number,
+                            'sent_at' => $schedule->invoice->sent_at?->toISOString(),
+                            'has_pdf' => $schedule->invoice->pdf_path !== null,
+                        ] : null,
                     ];
                 });
             }),
@@ -53,6 +64,10 @@ class ServiceRequestResource extends JsonResource
             'estimated_duration_minutes' => $this->service?->average_duration_minutes,
             'closed_at' => $this->closed_at?->toISOString(),
             'is_active' => $this->is_active,
+            'rating' => $this->when(
+                $this->ratings()->exists(),
+                fn () => new RatingResource($this->ratings()->with('user')->latest()->first())
+            ),
             'comments' => CommentResource::collection($this->whenLoaded('comments')),
             'comments_count' => $this->when(isset($this->comments_count), $this->comments_count),
             'media_count' => $this->when(isset($this->media_count), $this->media_count),

@@ -3,8 +3,11 @@
 namespace App\Observers;
 
 use App\Events\ScheduleUpdated;
+use App\Jobs\SendInvoiceJob;
 use App\Models\ServiceSchedule;
 use App\Notifications\ScheduleStatusUpdated;
+use App\Services\InvoiceService;
+use Illuminate\Support\Facades\Log;
 
 class ServiceScheduleObserver
 {
@@ -51,6 +54,7 @@ class ServiceScheduleObserver
         }
 
         $oldStatus = $serviceSchedule->getOriginal('status');
+        $newStatus = $serviceSchedule->status;
 
         $this->syncRequestStatus($serviceSchedule);
 
@@ -59,6 +63,22 @@ class ServiceScheduleObserver
 
         broadcast(new ScheduleUpdated($serviceSchedule));
 
+        // Generate invoice BEFORE notifying customer so notification includes invoice details
+        if ($newStatus === 'completed') {
+            if ($serviceSchedule->actual_price !== null) {
+                try {
+                    $invoice = app(InvoiceService::class)->generateForSchedule($serviceSchedule);
+                    SendInvoiceJob::dispatch($invoice, $serviceSchedule);
+                    $serviceSchedule->setRelation('invoice', $invoice);
+                } catch (\Throwable $e) {
+                    Log::error("Invoice generation failed for schedule #{$serviceSchedule->id}: {$e->getMessage()}");
+                }
+            } else {
+                Log::warning("Schedule #{$serviceSchedule->id} completed without actual_price — invoice not generated.");
+            }
+        }
+
+        // Notify customer — for 'completed', invoice relation is already loaded above
         $serviceSchedule->customer?->notify(
             new ScheduleStatusUpdated($serviceSchedule, $oldStatus)
         );

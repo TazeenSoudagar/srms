@@ -68,6 +68,15 @@ class ServiceScheduleController extends Controller
         // Set customer_id from authenticated user
         $validated['customer_id'] = $request->user()->id;
 
+        // Auto-calculate GST amounts server-side
+        if (isset($validated['actual_price'])) {
+            $gstRate = 18.00;
+            $gstAmount = round((float) $validated['actual_price'] * ($gstRate / 100), 2);
+            $validated['gst_rate'] = $gstRate;
+            $validated['gst_amount'] = $gstAmount;
+            $validated['total_amount'] = round((float) $validated['actual_price'] + $gstAmount, 2);
+        }
+
         $schedule = ServiceSchedule::create($validated);
         $schedule->load(['serviceRequest.service', 'customer', 'engineer']);
 
@@ -120,6 +129,16 @@ class ServiceScheduleController extends Controller
         Gate::authorize('update', $schedule);
 
         $validated = $request->validated();
+
+        // Auto-calculate GST amounts server-side
+        if (isset($validated['actual_price'])) {
+            $gstRate = 18.00;
+            $gstAmount = round((float) $validated['actual_price'] * ($gstRate / 100), 2);
+            $validated['gst_rate'] = $gstRate;
+            $validated['gst_amount'] = $gstAmount;
+            $validated['total_amount'] = round((float) $validated['actual_price'] + $gstAmount, 2);
+        }
+
         $schedule->update($validated);
         $schedule->load(['serviceRequest.service', 'customer', 'engineer']);
 
@@ -183,10 +202,27 @@ class ServiceScheduleController extends Controller
 
         Gate::authorize('complete', $schedule);
 
-        $schedule->update([
+        $request->validate([
+            'actual_price' => 'nullable|numeric|min:0|max:999999.99',
+        ]);
+
+        $updateData = [
             'status' => 'completed',
             'completed_at' => now(),
-        ]);
+        ];
+
+        $actualPrice = $request->input('actual_price') ?? $schedule->actual_price;
+
+        if ($actualPrice !== null) {
+            $gstRate = 18.00;
+            $gstAmount = round((float) $actualPrice * ($gstRate / 100), 2);
+            $updateData['actual_price'] = (float) $actualPrice;
+            $updateData['gst_rate'] = $gstRate;
+            $updateData['gst_amount'] = $gstAmount;
+            $updateData['total_amount'] = round((float) $actualPrice + $gstAmount, 2);
+        }
+
+        $schedule->update($updateData);
 
         $schedule->load(['serviceRequest.service', 'customer', 'engineer']);
 

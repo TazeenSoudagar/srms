@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ServiceSchedule extends Model
@@ -23,6 +24,10 @@ class ServiceSchedule extends Model
         'location',
         'estimated_duration_minutes',
         'reminder_sent_at',
+        'actual_price',
+        'gst_rate',
+        'gst_amount',
+        'total_amount',
     ];
 
     protected $casts = [
@@ -30,6 +35,10 @@ class ServiceSchedule extends Model
         'completed_at' => 'datetime',
         'reminder_sent_at' => 'datetime',
         'estimated_duration_minutes' => 'integer',
+        'actual_price' => 'decimal:2',
+        'gst_rate' => 'decimal:2',
+        'gst_amount' => 'decimal:2',
+        'total_amount' => 'decimal:2',
     ];
 
     protected $appends = ['hashed_id'];
@@ -66,6 +75,14 @@ class ServiceSchedule extends Model
     public function engineer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'engineer_id');
+    }
+
+    /**
+     * Get the invoice for this schedule.
+     */
+    public function invoice(): HasOne
+    {
+        return $this->hasOne(Invoice::class, 'schedule_id');
     }
 
     /**

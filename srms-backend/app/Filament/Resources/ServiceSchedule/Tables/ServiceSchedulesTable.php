@@ -116,12 +116,31 @@ class ServiceSchedulesTable
                 Action::make('confirm')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
-                    ->requiresConfirmation()
                     ->visible(fn ($record) => in_array($record->status, ['pending']))
-                    ->action(function ($record) {
-                        $record->update(['status' => 'confirmed']);
+                    ->form([
+                        \Filament\Forms\Components\TextInput::make('actual_price')
+                            ->label('Actual Price (₹)')
+                            ->numeric()
+                            ->minValue(0)
+                            ->prefix('₹')
+                            ->required()
+                            ->default(fn ($record) => $record->actual_price)
+                            ->helperText('Enter the assessed price for this service. GST (18%) will be applied. The customer will be notified with the price breakdown.'),
+                    ])
+                    ->action(function ($record, array $data) {
+                        $actualPrice = (float) $data['actual_price'];
+                        $gstRate = 18.00;
+                        $gstAmount = round($actualPrice * ($gstRate / 100), 2);
+                        $record->update([
+                            'status' => 'confirmed',
+                            'actual_price' => $actualPrice,
+                            'gst_rate' => $gstRate,
+                            'gst_amount' => $gstAmount,
+                            'total_amount' => round($actualPrice + $gstAmount, 2),
+                        ]);
                         Notification::make()
                             ->title('Schedule Confirmed')
+                            ->body('Customer has been notified with the price breakdown.')
                             ->success()
                             ->send();
                     }),
@@ -129,14 +148,24 @@ class ServiceSchedulesTable
                     ->icon('heroicon-o-check-badge')
                     ->color('success')
                     ->requiresConfirmation()
+                    ->modalDescription('Mark this schedule as completed? An invoice will be generated and emailed to the customer.')
                     ->visible(fn ($record) => in_array($record->status, ['confirmed', 'in_progress']))
                     ->action(function ($record) {
+                        if (! $record->actual_price) {
+                            Notification::make()
+                                ->title('Price required')
+                                ->body('Set the actual price (via Confirm action) before completing.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
                         $record->update([
                             'status' => 'completed',
                             'completed_at' => now(),
                         ]);
                         Notification::make()
                             ->title('Schedule Completed')
+                            ->body('Invoice will be generated and emailed to the customer.')
                             ->success()
                             ->send();
                     }),

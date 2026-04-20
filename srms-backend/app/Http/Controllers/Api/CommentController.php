@@ -9,10 +9,13 @@ use App\Http\Requests\Comment\StoreCommentRequest;
 use App\Http\Resources\CommentResource;
 use App\Models\Comment;
 use App\Models\ServiceRequest;
+use App\Models\User;
+use App\Notifications\AdminNewComment;
 use App\Services\ActivityLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 
 class CommentController extends Controller
 {
@@ -56,6 +59,12 @@ class CommentController extends Controller
             'service_request_id' => $serviceRequest->id,
             'service_request_number' => $serviceRequest->request_number,
         ]);
+
+        // Notify admins and support engineers when a customer adds a comment
+        if ($user->role?->name === 'Client') {
+            $admins = User::whereHas('role', fn ($q) => $q->whereIn('name', ['Admin', 'Support Engineer']))->get();
+            Notification::send($admins, new AdminNewComment($comment, $serviceRequest));
+        }
 
         return (new CommentResource($comment))
             ->response()

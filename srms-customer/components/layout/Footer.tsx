@@ -6,17 +6,9 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   const footerLinks = {
-    services: [
-      { name: "Plumbing", href: "/services/plumbing" },
-      { name: "Electrical", href: "/services/electrical" },
-      { name: "Cleaning", href: "/services/cleaning" },
-      { name: "Carpentry", href: "/services/carpentry" },
-      { name: "Painting", href: "/services/painting" },
-    ],
     company: [
       { name: "About Us", href: "/about" },
       { name: "How It Works", href: "/how-it-works" },
-      { name: "Careers", href: "/careers" },
       { name: "Blog", href: "/blog" },
     ],
     support: [
@@ -45,7 +37,7 @@ export default function Footer() {
       <Container>
         {/* Main Footer Content */}
         <div className="py-12 md:py-16">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Brand Column */}
             <div className="lg:col-span-2">
               <div className="flex items-center gap-2 mb-4">
@@ -71,23 +63,6 @@ export default function Footer() {
                   </div>
                 ))}
               </div>
-            </div>
-
-            {/* Services Links */}
-            <div>
-              <h3 className="text-white font-semibold mb-4">Services</h3>
-              <ul className="space-y-3">
-                {footerLinks.services.map((link) => (
-                  <li key={link.name}>
-                    <Link
-                      href={link.href}
-                      className="text-sm hover:text-primary-400 transition-colors"
-                    >
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
             </div>
 
             {/* Company Links */}
