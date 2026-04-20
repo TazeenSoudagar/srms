@@ -23,20 +23,29 @@ trait HandlesSchedulePricing
                 ->minValue(0)
                 ->prefix('₹')
                 ->placeholder('0.00')
+                ->live(onBlur: true)
+                ->afterStateUpdated(function ($state, callable $set) {
+                    if ($state === null || $state === '') {
+                        $set('total_amount', null);
+                        return;
+                    }
+                    $actualPrice = (float) $state;
+                    $gstAmount   = round($actualPrice * 0.18, 2);
+                    $set('total_amount', number_format(round($actualPrice + $gstAmount, 2), 2, '.', ''));
+                })
                 ->helperText('Required when confirming. GST (18%) is auto-calculated.'),
             TextInput::make('gst_rate')
                 ->label('GST Rate (%)')
                 ->numeric()
                 ->default(18)
                 ->suffix('%')
-                ->disabled()
-                ->dehydrated(false)
+                ->readOnly()
                 ->helperText('Auto-applied (18%)'),
             TextInput::make('total_amount')
                 ->label('Total Amount (₹)')
                 ->prefix('₹')
-                ->disabled()
-                ->dehydrated(false)
+                ->readOnly()
+                ->placeholder('Auto-calculated')
                 ->helperText('Price + GST'),
         ];
     }

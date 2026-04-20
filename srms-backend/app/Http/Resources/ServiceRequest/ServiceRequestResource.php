@@ -52,6 +52,10 @@ class ServiceRequestResource extends JsonResource
                         'gst_rate' => $schedule->gst_rate,
                         'gst_amount' => $schedule->gst_amount,
                         'total_amount' => $schedule->total_amount,
+                        'payment_status' => $schedule->payment_status,
+                        'payment_due_at' => $schedule->payment_due_at?->toISOString(),
+                        'payment_uploaded_at' => $schedule->payment_uploaded_at?->toISOString(),
+                        'payment_verified_at' => $schedule->payment_verified_at?->toISOString(),
                         'invoice' => $schedule->relationLoaded('invoice') && $schedule->invoice ? [
                             'invoice_number' => $schedule->invoice->invoice_number,
                             'sent_at' => $schedule->invoice->sent_at?->toISOString(),

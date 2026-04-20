@@ -66,6 +66,12 @@ class ServiceScheduleObserver
         // Generate invoice BEFORE notifying customer so notification includes invoice details
         if ($newStatus === 'completed') {
             if ($serviceSchedule->actual_price !== null) {
+                // Set payment due date (7 days) without re-triggering the observer
+                $serviceSchedule->updateQuietly([
+                    'payment_status' => 'pending',
+                    'payment_due_at' => now()->addDays(7),
+                ]);
+
                 try {
                     $invoice = app(InvoiceService::class)->generateForSchedule($serviceSchedule);
                     SendInvoiceJob::dispatch($invoice, $serviceSchedule);

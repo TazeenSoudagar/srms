@@ -1,0 +1,36 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('service_schedules', function (Blueprint $table) {
+            $table->enum('payment_status', ['pending', 'paid', 'paid_verified'])
+                ->default('pending')
+                ->after('total_amount');
+            $table->string('payment_proof_path')->nullable()->after('payment_status');
+            $table->string('payment_proof_mime')->nullable()->after('payment_proof_path');
+            $table->timestamp('payment_due_at')->nullable()->after('payment_proof_mime');
+            $table->timestamp('payment_uploaded_at')->nullable()->after('payment_due_at');
+            $table->timestamp('payment_verified_at')->nullable()->after('payment_uploaded_at');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('service_schedules', function (Blueprint $table) {
+            $table->dropColumn([
+                'payment_status',
+                'payment_proof_path',
+                'payment_proof_mime',
+                'payment_due_at',
+                'payment_uploaded_at',
+                'payment_verified_at',
+            ]);
+        });
+    }
+};

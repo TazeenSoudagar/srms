@@ -80,7 +80,7 @@ class ServiceCompletionController extends Controller
     }
 
     /**
-     * Customer verifies the completion OTP — status is set to closed.
+     * Engineer (or admin) verifies the completion OTP told to them by the customer — status is set to closed.
      */
     public function verifyCompletion(Request $request, ServiceRequest $serviceRequest): JsonResponse
     {
@@ -88,11 +88,27 @@ class ServiceCompletionController extends Controller
             'otp' => ['required', 'string', 'size:6'],
         ]);
 
-        $customer = Auth::user();
+        $actor = Auth::user();
+        $roleName = strtolower($actor->role?->name ?? '');
 
-        // Only the customer who owns the request can verify
-        if ($serviceRequest->created_by !== $customer->id) {
+        // Only the assigned engineer or admin can verify on behalf of the customer
+        if (! in_array($roleName, ['support engineer', 'admin'])) {
             return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+
+        if ($roleName === 'support engineer') {
+            $isAssigned = $serviceRequest->schedules()
+                ->where('engineer_id', $actor->id)
+                ->exists();
+            if (! $isAssigned) {
+                return response()->json(['message' => 'Unauthorized.'], 403);
+            }
+        }
+
+        // OTP was generated for the customer of this request
+        $customer = User::find($serviceRequest->created_by);
+        if (! $customer) {
+            return response()->json(['message' => 'Customer not found.'], 404);
         }
 
         $otpVerification = OtpVerification::where('user_id', $customer->id)
@@ -118,24 +134,42 @@ class ServiceCompletionController extends Controller
 
         $oldStatus = $serviceRequest->status?->value ?? $serviceRequest->status;
 
-        $serviceRequest->update([
-            'status' => 'closed',
-            'closed_at' => now(),
-            'updated_by' => $customer->id,
-        ]);
+        // Mark the active schedule as completed — the observer handles invoice generation
+        // and syncs the ServiceRequest status to 'closed' automatically.
+        $activeSchedule = $serviceRequest->schedules()
+            ->whereIn('status', ['confirmed', 'in_progress'])
+            ->latest('scheduled_at')
+            ->first();
 
+        if ($activeSchedule) {
+            $activeSchedule->update(['status' => 'completed']);
+        } else {
+            // No active schedule (edge case): close the request directly
+            $serviceRequest->update([
+                'status'     => 'closed',
+                'closed_at'  => now(),
+                'updated_by' => $actor->id,
+            ]);
+        }
+
+        $serviceRequest->refresh();
         $serviceRequest->load(['service', 'createdBy', 'updatedBy', 'schedules.engineer']);
 
-        ActivityLogService::logStatusChanged($customer, $serviceRequest, $oldStatus, 'closed');
+        ActivityLogService::logStatusChanged($actor, $serviceRequest, $oldStatus, 'closed');
 
-        // Notify all relevant parties of closure
+        $notification = new ServiceRequestStatusChanged($serviceRequest, $oldStatus, 'closed');
+
+        // Notify customer
+        $customer->notify($notification);
+
+        // Notify admins
         $admins = User::whereHas('role', fn ($q) => $q->whereIn('name', ['Admin']))->get();
-        Notification::send($admins, new ServiceRequestStatusChanged($serviceRequest, $oldStatus, 'closed'));
+        Notification::send($admins, $notification);
 
-        // Notify assigned engineer
-        $serviceRequest->schedules->each(function ($schedule) use ($serviceRequest, $oldStatus) {
-            if ($schedule->engineer) {
-                $schedule->engineer->notify(new ServiceRequestStatusChanged($serviceRequest, $oldStatus, 'closed'));
+        // Notify assigned engineers (excluding the actor if they are the engineer)
+        $serviceRequest->schedules->each(function ($schedule) use ($notification, $actor) {
+            if ($schedule->engineer && $schedule->engineer->id !== $actor->id) {
+                $schedule->engineer->notify($notification);
             }
         });
 

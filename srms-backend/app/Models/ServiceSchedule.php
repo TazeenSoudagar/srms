@@ -28,12 +28,21 @@ class ServiceSchedule extends Model
         'gst_rate',
         'gst_amount',
         'total_amount',
+        'payment_status',
+        'payment_proof_path',
+        'payment_proof_mime',
+        'payment_due_at',
+        'payment_uploaded_at',
+        'payment_verified_at',
     ];
 
     protected $casts = [
         'scheduled_at' => 'datetime',
         'completed_at' => 'datetime',
         'reminder_sent_at' => 'datetime',
+        'payment_due_at' => 'datetime',
+        'payment_uploaded_at' => 'datetime',
+        'payment_verified_at' => 'datetime',
         'estimated_duration_minutes' => 'integer',
         'actual_price' => 'decimal:2',
         'gst_rate' => 'decimal:2',

@@ -31,18 +31,12 @@ class User extends Authenticatable
         'role_id',
         'email',
         'is_active',
-        // Engineer profile fields
         'latitude',
         'longitude',
         'address',
         'city',
         'state',
         'country',
-        'bio',
-        'hourly_rate',
-        'years_of_experience',
-        'specializations',
-        'availability_status',
     ];
 
     /**
@@ -66,17 +60,19 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
-            'specializations' => 'array',
             'latitude' => 'float',
             'longitude' => 'float',
-            'hourly_rate' => 'decimal:2',
-            'years_of_experience' => 'integer',
         ];
     }
 
     public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
+    }
+
+    public function engineerProfile(): HasOne
+    {
+        return $this->hasOne(EngineerProfile::class);
     }
 
     /**
