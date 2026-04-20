@@ -22,8 +22,9 @@ class ServiceRequestCreated extends Notification
     public function toArray($notifiable): array
     {
         return [
+            'format' => 'filament',
             'title' => 'New Service Request Created',
-            'message' => "Service request #{$this->serviceRequest->request_number} has been created.",
+            'body' => "Service request #{$this->serviceRequest->request_number} has been created.",
             'service_request_id' => $this->serviceRequest->id,
             'request_number' => $this->serviceRequest->request_number,
             'icon' => 'heroicon-o-clipboard-document-list',

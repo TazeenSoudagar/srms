@@ -12,11 +12,14 @@ use App\Http\Requests\ServiceRequest\UpdateStatusRequest;
 use App\Http\Resources\ServiceRequest\ServiceRequestCollection;
 use App\Http\Resources\ServiceRequest\ServiceRequestResource;
 use App\Models\ServiceRequest;
+use App\Models\User;
+use App\Notifications\AdminNewServiceRequest;
 use App\Services\ActivityLogService;
 use App\Services\HashidsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 
 class ServiceRequestController extends Controller
 {
@@ -125,6 +128,10 @@ class ServiceRequestController extends Controller
             'service' => $serviceRequest->service->name ?? null,
         ]);
 
+        // Notify all admins and support engineers
+        $admins = User::whereHas('role', fn ($q) => $q->whereIn('name', ['Admin', 'Support Engineer']))->get();
+        Notification::send($admins, new AdminNewServiceRequest($serviceRequest));
+
         return (new ServiceRequestResource($serviceRequest))
             ->response()
             ->setStatusCode(201);
@@ -142,6 +149,7 @@ class ServiceRequestController extends Controller
             'createdBy',
             'updatedBy',
             'schedules.engineer',
+            'schedules.invoice',
             'comments.user.role',
             'media',
         ]);

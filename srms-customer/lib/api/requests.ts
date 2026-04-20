@@ -5,6 +5,7 @@ import {
   CreateCommentDto,
   CreateServiceRequestDto,
   Media,
+  Rating,
   ServiceRequest,
   ServiceRequestFilters,
   UpdateServiceRequestDto,
@@ -97,6 +98,16 @@ export const serviceRequestsApi = {
   delete: async (id: string): Promise<void> => {
     await apiClient.delete(`/service-requests/${id}`);
   },
+
+  /**
+   * Download invoice PDF for a completed service request.
+   */
+  downloadInvoice: async (id: string): Promise<Blob> => {
+    const response = await apiClient.get(`/service-requests/${id}/invoice`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
 };
 
 export const commentsApi = {
@@ -145,6 +156,24 @@ export const commentsApi = {
   delete: async (requestId: string, commentId: string): Promise<void> => {
     await apiClient.delete(`/service-requests/${requestId}/comments/${commentId}`);
   },
+};
+
+export const ratingsApi = {
+  submit: (
+    requestId: string,
+    data: {
+      rating: number;
+      review?: string;
+      professionalism_rating?: number;
+      timeliness_rating?: number;
+      quality_rating?: number;
+      is_anonymous?: boolean;
+    }
+  ): Promise<import('axios').AxiosResponse<ApiResponse<Rating>>> =>
+    apiClient.post<ApiResponse<Rating>>(`/service-requests/${requestId}/rating`, data),
+
+  get: (requestId: string): Promise<import('axios').AxiosResponse<ApiResponse<Rating>>> =>
+    apiClient.get<ApiResponse<Rating>>(`/service-requests/${requestId}/rating`),
 };
 
 export const mediaApi = {

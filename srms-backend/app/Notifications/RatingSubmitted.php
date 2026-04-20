@@ -22,8 +22,9 @@ class RatingSubmitted extends Notification
     public function toArray($notifiable): array
     {
         return [
+            'format' => 'filament',
             'title' => 'New Rating Received',
-            'message' => "You received a {$this->rating->rating}-star rating for service request #{$this->rating->serviceRequest->request_number}.",
+            'body' => "You received a {$this->rating->rating}-star rating for service request #{$this->rating->serviceRequest->request_number}.",
             'rating_id' => $this->rating->id,
             'service_request_id' => $this->rating->service_request_id,
             'rating' => $this->rating->rating,

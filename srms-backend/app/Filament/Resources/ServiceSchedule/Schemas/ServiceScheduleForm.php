@@ -110,6 +110,33 @@ class ServiceScheduleForm
                     ->columns(3)
                     ->columnSpanFull(),
 
+                Section::make('Pricing')
+                    ->schema([
+                        TextInput::make('actual_price')
+                            ->label('Actual Price (₹)')
+                            ->numeric()
+                            ->minValue(0)
+                            ->prefix('₹')
+                            ->helperText('Required when confirming or completing. GST (18%) is auto-calculated.')
+                            ->placeholder('0.00'),
+                        TextInput::make('gst_rate')
+                            ->label('GST Rate (%)')
+                            ->numeric()
+                            ->default(18)
+                            ->suffix('%')
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->helperText('Current GST rate (auto-applied)'),
+                        TextInput::make('total_amount')
+                            ->label('Total Amount (₹)')
+                            ->prefix('₹')
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->helperText('Auto-calculated: Price + GST'),
+                    ])
+                    ->columns(3)
+                    ->columnSpanFull(),
+
                 Section::make('Location & Notes')
                     ->schema([
                         Textarea::make('location')

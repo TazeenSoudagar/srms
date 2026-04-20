@@ -18,10 +18,12 @@ class RatingService
     public function createRating(ServiceRequest $serviceRequest, array $data): Rating
     {
         return DB::transaction(function () use ($serviceRequest, $data) {
+            $engineerId = $serviceRequest->schedules()->latest()->first()?->engineer_id;
+
             $rating = Rating::create([
                 'service_request_id' => $serviceRequest->id,
                 'user_id' => $data['user_id'],
-                'engineer_id' => $serviceRequest->assigned_to,
+                'engineer_id' => $engineerId,
                 'service_id' => $serviceRequest->service_id,
                 'rating' => $data['rating'],
                 'professionalism_rating' => $data['professionalism_rating'] ?? null,
@@ -32,8 +34,8 @@ class RatingService
             ]);
 
             // Update engineer aggregate
-            if ($serviceRequest->assigned_to) {
-                $engineer = User::find($serviceRequest->assigned_to);
+            if ($engineerId) {
+                $engineer = User::find($engineerId);
                 if ($engineer) {
                     $this->updateEngineerAggregate($engineer);
                 }
@@ -114,17 +116,23 @@ class RatingService
     public function canRate(User $user, ServiceRequest $serviceRequest): bool
     {
         // Must be the customer who made the request
-        if ($serviceRequest->user_id !== $user->id) {
+        if ($serviceRequest->created_by !== $user->id) {
             return false;
         }
 
         // Service request must be completed/closed
-        if ($serviceRequest->status !== 'closed') {
+        $statusValue = $serviceRequest->status instanceof \BackedEnum
+            ? $serviceRequest->status->value
+            : (string) $serviceRequest->status;
+
+        if ($statusValue !== 'closed') {
             return false;
         }
 
         // Cannot rate if already rated
-        if (Rating::where('service_request_id', $serviceRequest->id)->exists()) {
+        if (Rating::where('service_request_id', $serviceRequest->id)
+            ->where('user_id', $user->id)
+            ->exists()) {
             return false;
         }
 

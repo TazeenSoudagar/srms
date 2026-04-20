@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class ServiceRequest extends Model
@@ -109,6 +110,21 @@ class ServiceRequest extends Model
     public function activityLogs(): MorphMany
     {
         return $this->morphMany(ActivityLog::class, 'loggable');
+    }
+
+    /**
+     * Get the invoice for this service request (through the completed schedule).
+     */
+    public function invoice(): HasOneThrough
+    {
+        return $this->hasOneThrough(
+            Invoice::class,
+            ServiceSchedule::class,
+            'service_request_id',
+            'schedule_id',
+            'id',
+            'id'
+        );
     }
 
     /**

@@ -35,6 +35,7 @@ class StoreServiceScheduleRequest extends FormRequest
             'notes' => 'nullable|string|max:1000',
             'location' => 'nullable|string|max:255',
             'estimated_duration_minutes' => 'nullable|integer|min:15|max:480',
+            'actual_price' => 'nullable|numeric|min:0|max:999999.99',
         ];
     }
 

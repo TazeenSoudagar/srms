@@ -68,6 +68,24 @@ class ServiceScheduleInfolist
                     ->columns(3)
                     ->columnSpanFull(),
 
+                Section::make('Pricing')
+                    ->schema([
+                        TextEntry::make('actual_price')
+                            ->label('Service Charge')
+                            ->formatStateUsing(fn ($state) => $state ? '₹'.number_format((float) $state, 2) : 'Not set')
+                            ->color(fn ($state) => $state ? 'success' : 'gray'),
+                        TextEntry::make('gst_amount')
+                            ->label('GST (18%)')
+                            ->formatStateUsing(fn ($state) => $state ? '₹'.number_format((float) $state, 2) : '—'),
+                        TextEntry::make('total_amount')
+                            ->label('Total Amount')
+                            ->formatStateUsing(fn ($state) => $state ? '₹'.number_format((float) $state, 2) : '—')
+                            ->weight('bold')
+                            ->color('primary'),
+                    ])
+                    ->columns(3)
+                    ->columnSpanFull(),
+
                 Section::make('Location')
                     ->schema([
                         TextEntry::make('location')
