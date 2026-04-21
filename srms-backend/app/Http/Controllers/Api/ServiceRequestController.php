@@ -97,9 +97,21 @@ class ServiceRequestController extends Controller
             $query->search($request->search);
         }
 
+        // Sorting
+        if ($request->filled('sort_by') && in_array($request->sort_by, ['created_at', 'updated_at', 'status', 'priority'], true)) {
+            $sortOrder = $request->sort_order === 'asc' ? 'asc' : 'desc';
+            $query->orderBy($request->sort_by, $sortOrder);
+        } elseif (! $request->filled('status')) {
+            // Default "All" view: open → in_progress → closed → cancelled, then newest first
+            $query->orderByRaw("FIELD(status, 'open', 'in_progress', 'closed', 'cancelled')")
+                  ->orderBy('created_at', 'desc');
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
         // Pagination
         $perPage = min((int) ($request->per_page ?? 15), 100); // Max 100 per page
-        $serviceRequests = $query->latest()->paginate($perPage);
+        $serviceRequests = $query->paginate($perPage);
 
         return new ServiceRequestCollection($serviceRequests);
     }
@@ -235,6 +247,8 @@ class ServiceRequestController extends Controller
 
         $customer = \App\Models\User::find($serviceRequest->created_by);
         $customer?->notify(new \App\Notifications\ScheduleCreated($schedule));
+
+        $engineer->notify(new \App\Notifications\EngineerAssigned($schedule));
 
         // Update service request
         $serviceRequest->update([

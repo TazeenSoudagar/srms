@@ -120,6 +120,20 @@ export const serviceRequestsApi = {
     );
     return response.data;
   },
+
+  /**
+   * Upload payment proof (image or PDF) for a completed schedule.
+   */
+  uploadPaymentProof: async (id: string, file: File): Promise<ApiResponse<{ payment_status: string }>> => {
+    const formData = new FormData();
+    formData.append('proof', file);
+    const response = await apiClient.post<ApiResponse<{ payment_status: string }>>(
+      `/service-requests/${id}/payment-proof`,
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    );
+    return response.data;
+  },
 };
 
 export const commentsApi = {

@@ -11,6 +11,7 @@ use App\Models\Comment;
 use App\Models\ServiceRequest;
 use App\Models\User;
 use App\Notifications\AdminNewComment;
+use App\Notifications\NewCommentAdded;
 use App\Services\ActivityLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -28,7 +29,7 @@ class CommentController extends Controller
         $this->authorize('view', $serviceRequest);
 
         $comments = $serviceRequest->comments()
-            ->with('user')
+            ->with('user.role')
             ->latest()
             ->get();
 
@@ -52,7 +53,7 @@ class CommentController extends Controller
             'body' => $request->body,
         ]);
 
-        $comment->load('user');
+        $comment->load('user.role');
 
         // Log activity
         ActivityLogService::logCreated($user, $comment, [
@@ -105,7 +106,7 @@ class CommentController extends Controller
         $this->authorize('view', $comment);
         $this->authorize('view', $serviceRequest);
 
-        $comment->load('user');
+        $comment->load('user.role');
 
         return new CommentResource($comment);
     }
@@ -130,7 +131,7 @@ class CommentController extends Controller
             'body' => $request->body,
         ]);
 
-        $comment->load('user');
+        $comment->load('user.role');
 
         // Log activity
         ActivityLogService::logUpdated($user, $comment, [

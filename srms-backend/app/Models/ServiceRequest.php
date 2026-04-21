@@ -229,7 +229,8 @@ class ServiceRequest extends Model
         return $query->where(function ($q) use ($search) {
             $q->where('title', 'like', "%{$search}%")
                 ->orWhere('description', 'like', "%{$search}%")
-                ->orWhere('request_number', 'like', "%{$search}%");
+                ->orWhere('request_number', 'like', "%{$search}%")
+                ->orWhereHas('service', fn ($sq) => $sq->where('name', 'like', "%{$search}%"));
         });
     }
 

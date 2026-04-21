@@ -196,9 +196,19 @@ export default function DashboardPage() {
                     #{req.request_number} · Closed {req.closed_at ? formatDate(req.closed_at) : ""}
                   </p>
                 </div>
-                <div className="flex items-center gap-1 text-amber-500">
-                  <Star className="w-4 h-4 fill-current" />
-                </div>
+                {req.rating ? (
+                  <div className="flex items-center gap-1 shrink-0">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`w-3.5 h-3.5 ${star <= req.rating!.rating ? "text-amber-400 fill-current" : "text-neutral-200 fill-current"}`}
+                      />
+                    ))}
+                    <span className="text-xs text-neutral-500 ml-1">{req.rating.rating}/5</span>
+                  </div>
+                ) : (
+                  <span className="text-xs text-neutral-300 shrink-0">No rating</span>
+                )}
               </Link>
             ))
           )}

@@ -52,6 +52,10 @@ export interface ServiceRequest {
     gst_rate?: string | null;
     gst_amount?: string | null;
     total_amount?: string | null;
+    payment_status?: 'pending' | 'paid' | 'paid_verified' | null;
+    payment_due_at?: string | null;
+    payment_uploaded_at?: string | null;
+    payment_verified_at?: string | null;
     invoice?: {
       invoice_number: string;
       sent_at?: string | null;
@@ -93,7 +97,10 @@ export interface Comment {
   user: {
     id: string;
     name: string;
+    first_name?: string;
+    last_name?: string;
     email?: string;
+    role?: { name: string } | null;
   };
   createdAt: string;
   updatedAt: string;

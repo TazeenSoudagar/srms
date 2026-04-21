@@ -4,6 +4,8 @@ namespace App\Filament\Resources\ServiceRequest\RelationManagers;
 
 use App\Filament\Resources\ServiceSchedule\Concerns\HandlesSchedulePricing;
 use App\Models\User;
+use App\Notifications\EngineerAssigned;
+use App\Notifications\ScheduleCreated;
 use Filament\Actions;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DateTimePicker;
@@ -17,6 +19,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Storage;
 
 class SchedulesRelationManager extends RelationManager
 {
@@ -130,6 +133,22 @@ class SchedulesRelationManager extends RelationManager
                     ->label('Duration')
                     ->formatStateUsing(fn ($state) => $state ? "{$state} min" : '—')
                     ->toggleable(),
+                Tables\Columns\TextColumn::make('payment_status')
+                    ->label('Payment')
+                    ->badge()
+                    ->color(fn (?string $state): string => match ($state) {
+                        'pending'       => 'warning',
+                        'paid'          => 'info',
+                        'paid_verified' => 'success',
+                        default         => 'gray',
+                    })
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'pending'       => 'Pending',
+                        'paid'          => 'Proof Uploaded',
+                        'paid_verified' => 'Verified',
+                        default         => '—',
+                    })
+                    ->toggleable(),
             ])
             ->filters([])
             ->headerActions([
@@ -137,6 +156,18 @@ class SchedulesRelationManager extends RelationManager
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['customer_id'] = $this->ownerRecord->created_by;
                         return static::applyPricingMutation($data, fn () => $this->halt());
+                    })
+                    ->after(function ($record) {
+                        $record->load(['serviceRequest', 'engineer', 'customer']);
+
+                        if ($record->engineer) {
+                            $record->engineer->notify(new EngineerAssigned($record));
+                        }
+
+                        $customer = $record->customer ?? User::find($record->customer_id);
+                        if ($customer) {
+                            $customer->notify(new ScheduleCreated($record));
+                        }
                     }),
             ])
             ->actions([
@@ -232,6 +263,46 @@ class SchedulesRelationManager extends RelationManager
                             ->title('Schedule Rescheduled')
                             ->success()
                             ->send();
+                    }),
+
+                Action::make('verify_payment')
+                    ->label('Verify Payment')
+                    ->icon('heroicon-o-banknotes')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading('Verify Payment')
+                    ->modalDescription(
+                        'Confirm that the customer\'s payment proof has been verified. ' .
+                        'This will mark the payment as verified.'
+                    )
+                    ->visible(fn ($record) => $record->status === 'completed' && $record->payment_status === 'paid')
+                    ->action(function ($record) {
+                        $record->updateQuietly([
+                            'payment_status'      => 'paid_verified',
+                            'payment_verified_at' => now(),
+                        ]);
+                        Notification::make()
+                            ->title('Payment Verified')
+                            ->body('Payment has been marked as verified.')
+                            ->success()
+                            ->send();
+                    }),
+
+                Action::make('view_payment_proof')
+                    ->label('Download Proof')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('gray')
+                    ->visible(fn ($record) => $record->status === 'completed' && $record->payment_proof_path !== null)
+                    ->action(function ($record) {
+                        $path = $record->payment_proof_path;
+                        if (! $path || ! Storage::disk('local')->exists($path)) {
+                            Notification::make()->title('File not found')->danger()->send();
+                            return null;
+                        }
+                        $ext = pathinfo($path, PATHINFO_EXTENSION);
+                        $requestNumber = $record->serviceRequest?->request_number ?? $record->id;
+                        $filename = "payment-proof-{$requestNumber}.{$ext}";
+                        return Storage::disk('local')->download($path, $filename);
                     }),
 
                 Actions\ViewAction::make(),

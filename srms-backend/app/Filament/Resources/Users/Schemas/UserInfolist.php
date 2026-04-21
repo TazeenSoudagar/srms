@@ -64,20 +64,20 @@ class UserInfolist
 
                 Section::make('Engineer Profile')
                     ->schema([
-                        TextEntry::make('bio')
+                        TextEntry::make('engineerProfile.bio')
                             ->label('Biography')
                             ->html()
                             ->columnSpanFull()
                             ->placeholder('No bio provided'),
-                        TextEntry::make('hourly_rate')
+                        TextEntry::make('engineerProfile.hourly_rate')
                             ->label('Hourly Rate')
                             ->money('INR')
                             ->placeholder('—'),
-                        TextEntry::make('years_of_experience')
+                        TextEntry::make('engineerProfile.years_of_experience')
                             ->label('Experience')
                             ->formatStateUsing(fn($state) => $state ? "{$state} years" : '—')
                             ->placeholder('—'),
-                        TextEntry::make('availability_status')
+                        TextEntry::make('engineerProfile.availability_status')
                             ->label('Availability')
                             ->badge()
                             ->color(fn(?string $state): string => match ($state) {
@@ -87,7 +87,7 @@ class UserInfolist
                                 default     => 'gray',
                             })
                             ->formatStateUsing(fn(?string $state) => $state ? ucfirst($state) : 'Not set'),
-                        TextEntry::make('specializations')
+                        TextEntry::make('engineerProfile.specializations')
                             ->label('Specializations')
                             ->badge()
                             ->columnSpanFull()

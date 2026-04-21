@@ -17,6 +17,9 @@ class EditUser extends EditRecord
     /** @var array<string> */
     private array $engineerDocumentPaths = [];
 
+    /** @var array<string, mixed> */
+    private array $engineerProfileData = [];
+
     protected function getHeaderActions(): array
     {
         return [
@@ -27,8 +30,16 @@ class EditUser extends EditRecord
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
-        // Pre-populate engineer_documents field with existing document paths
         $data['engineer_documents'] = $this->record->documents()->pluck('path')->toArray();
+
+        $profile = $this->record->engineerProfile;
+        if ($profile) {
+            $data['bio'] = $profile->bio;
+            $data['hourly_rate'] = $profile->hourly_rate;
+            $data['years_of_experience'] = $profile->years_of_experience;
+            $data['specializations'] = $profile->specializations;
+            $data['availability_status'] = $profile->availability_status;
+        }
 
         return $data;
     }
@@ -44,12 +55,24 @@ class EditUser extends EditRecord
         $this->engineerDocumentPaths = $data['engineer_documents'] ?? [];
         unset($data['engineer_documents']);
 
+        $profileKeys = ['bio', 'hourly_rate', 'years_of_experience', 'specializations', 'availability_status'];
+        foreach ($profileKeys as $key) {
+            if (array_key_exists($key, $data)) {
+                $this->engineerProfileData[$key] = $data[$key];
+                unset($data[$key]);
+            }
+        }
+
         return $data;
     }
 
     protected function afterSave(): void
     {
         $this->syncEngineerDocuments($this->engineerDocumentPaths);
+
+        if ($this->engineerProfileData) {
+            $this->record->engineerProfile()->updateOrCreate([], $this->engineerProfileData);
+        }
     }
 
     /** @param array<string> $newPaths */

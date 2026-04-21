@@ -183,6 +183,9 @@ function CommentItem({
         <div className="flex items-center gap-2">
           <span className="text-xs font-medium text-neutral-600">
             {comment.user?.name || "Unknown"}
+            {comment.user?.role?.name && (
+              <span className="text-neutral-400 font-normal"> · {comment.user.role.name}</span>
+            )}
           </span>
           <span className="text-xs text-neutral-400">
             {formatRelativeTime(comment.createdAt)}
@@ -361,6 +364,11 @@ export default function RequestDetailPage() {
 
   // Invoice download state
   const [downloadingInvoice, setDownloadingInvoice] = useState(false);
+
+  // Payment proof state
+  const [selectedProofFile, setSelectedProofFile] = useState<File | null>(null);
+  const [uploadingProof, setUploadingProof] = useState(false);
+  const paymentProofInputRef = useRef<HTMLInputElement>(null);
 
   // Rating modal state
   const [showRatingModal, setShowRatingModal] = useState(false);
@@ -551,6 +559,33 @@ export default function RequestDetailPage() {
     } finally {
       setDownloadingInvoice(false);
     }
+  };
+
+  const handleProofFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    setSelectedProofFile(file);
+  };
+
+  const handleProofUploadConfirm = async () => {
+    if (!selectedProofFile) return;
+    setUploadingProof(true);
+    try {
+      await serviceRequestsApi.uploadPaymentProof(requestId, selectedProofFile);
+      toast.success("Payment proof uploaded! Admin will verify shortly.");
+      setSelectedProofFile(null);
+      if (paymentProofInputRef.current) paymentProofInputRef.current.value = "";
+      await fetchAll();
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      toast.error(msg || "Failed to upload payment proof.");
+    } finally {
+      setUploadingProof(false);
+    }
+  };
+
+  const handleProofUploadCancel = () => {
+    setSelectedProofFile(null);
+    if (paymentProofInputRef.current) paymentProofInputRef.current.value = "";
   };
 
   const handleRatingSuccess = (rating: Rating) => {
@@ -1110,6 +1145,123 @@ export default function RequestDetailPage() {
                     downloading={downloadingInvoice}
                   />
                 ) : null;
+              })()}
+
+              {/* Payment Proof Card — visible after invoice is generated */}
+              {(() => {
+                const completedSchedule = request.schedules?.find(
+                  (s) => s.status === "completed" && s.actual_price != null
+                );
+                if (!completedSchedule) return null;
+
+                const paymentStatus = completedSchedule.payment_status;
+                const isVerified = paymentStatus === "paid_verified";
+                const isPaid = paymentStatus === "paid";
+                const isPending = !paymentStatus || paymentStatus === "pending";
+
+                const paymentStatusConfig = {
+                  pending: { label: "Payment Pending", color: "text-orange-700", bg: "bg-orange-50 border-orange-200" },
+                  paid: { label: "Proof Uploaded — Awaiting Verification", color: "text-blue-700", bg: "bg-blue-50 border-blue-200" },
+                  paid_verified: { label: "Payment Verified", color: "text-green-700", bg: "bg-green-50 border-green-200" },
+                };
+                const statusDisplay = paymentStatusConfig[paymentStatus ?? "pending"] ?? paymentStatusConfig.pending;
+
+                return (
+                  <Card>
+                    <div className="p-5">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Receipt className="h-4 w-4 text-primary-500" />
+                        <h3 className="text-sm font-semibold text-neutral-700">Payment</h3>
+                      </div>
+
+                      <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium mb-4 ${statusDisplay.bg} ${statusDisplay.color}`}>
+                        {isVerified ? (
+                          <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
+                        ) : (
+                          <Clock className="h-3.5 w-3.5 flex-shrink-0" />
+                        )}
+                        {statusDisplay.label}
+                      </div>
+
+                      {completedSchedule.payment_due_at && !isVerified && (
+                        <p className="text-xs text-neutral-500 mb-3">
+                          Due by {new Date(completedSchedule.payment_due_at).toLocaleDateString()}
+                        </p>
+                      )}
+
+                      {isVerified ? (
+                        <p className="text-xs text-green-600">
+                          Your payment has been verified. Thank you!
+                          {completedSchedule.payment_verified_at && (
+                            <> Verified on {new Date(completedSchedule.payment_verified_at).toLocaleDateString()}.</>
+                          )}
+                        </p>
+                      ) : (isPending || isPaid) ? (
+                        <div className="space-y-3">
+                          {isPaid && !selectedProofFile && (
+                            <p className="text-xs text-neutral-500">
+                              Your proof is under review. You can re-upload if needed.
+                            </p>
+                          )}
+                          {!isPaid && !selectedProofFile && (
+                            <p className="text-xs text-neutral-500">
+                              Upload your payment screenshot or PDF (JPG, PNG, PDF · max 5 MB).
+                            </p>
+                          )}
+
+                          <input
+                            ref={paymentProofInputRef}
+                            type="file"
+                            className="hidden"
+                            accept="image/jpeg,image/png,application/pdf"
+                            onChange={handleProofFileSelected}
+                          />
+
+                          {/* No file selected yet */}
+                          {!selectedProofFile && (
+                            <button
+                              onClick={() => paymentProofInputRef.current?.click()}
+                              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border-2 border-dashed border-neutral-300 text-sm text-neutral-600 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50 transition-all"
+                            >
+                              <Paperclip className="h-4 w-4" />
+                              {isPaid ? "Re-upload Proof" : "Select Payment Proof"}
+                            </button>
+                          )}
+
+                          {/* File selected — show name + Upload / Cancel */}
+                          {selectedProofFile && (
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2 px-3 py-2 bg-neutral-50 rounded-lg border border-neutral-200 text-xs text-neutral-700">
+                                <FileText className="h-3.5 w-3.5 text-neutral-400 flex-shrink-0" />
+                                <span className="truncate flex-1">{selectedProofFile.name}</span>
+                                <span className="text-neutral-400 flex-shrink-0">
+                                  {(selectedProofFile.size / 1024).toFixed(0)} KB
+                                </span>
+                              </div>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={handleProofUploadCancel}
+                                  disabled={uploadingProof}
+                                  className="flex-1 px-3 py-2 rounded-lg border border-neutral-200 text-sm text-neutral-600 hover:bg-neutral-50 disabled:opacity-50 transition-colors"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  onClick={handleProofUploadConfirm}
+                                  disabled={uploadingProof}
+                                  className="flex-1 px-3 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 disabled:opacity-50 flex items-center justify-center gap-1.5 transition-colors"
+                                >
+                                  {uploadingProof ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                                  {uploadingProof ? "Uploading..." : "Upload"}
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : null}
+                    </div>
+                  </Card>
+                );
               })()}
 
               {/* Quick Stats */}
