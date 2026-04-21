@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -30,18 +31,12 @@ class User extends Authenticatable
         'role_id',
         'email',
         'is_active',
-        // Engineer profile fields
         'latitude',
         'longitude',
         'address',
         'city',
         'state',
         'country',
-        'bio',
-        'hourly_rate',
-        'years_of_experience',
-        'specializations',
-        'availability_status',
     ];
 
     /**
@@ -65,11 +60,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
-            'specializations' => 'array',
             'latitude' => 'float',
             'longitude' => 'float',
-            'hourly_rate' => 'decimal:2',
-            'years_of_experience' => 'integer',
         ];
     }
 
@@ -78,12 +70,25 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
+    public function engineerProfile(): HasOne
+    {
+        return $this->hasOne(EngineerProfile::class);
+    }
+
     /**
      * Get the user's profile picture (avatar).
      */
     public function avatar(): MorphOne
     {
-        return $this->morphOne(Media::class, 'mediaable');
+        return $this->morphOne(Media::class, 'mediaable')->where('collection', 'avatar');
+    }
+
+    /**
+     * Get the engineer's uploaded documents (e.g., ID proof, certificates).
+     */
+    public function documents(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Media::class, 'mediaable')->where('collection', 'documents');
     }
 
     /**

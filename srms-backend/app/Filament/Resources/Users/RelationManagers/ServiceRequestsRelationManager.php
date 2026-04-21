@@ -17,12 +17,17 @@ class ServiceRequestsRelationManager extends RelationManager
 
     protected static ?string $title = 'Service Requests';
 
+    public static function canViewForRecord(\Illuminate\Database\Eloquent\Model $ownerRecord, string $pageClass): bool
+    {
+        return $ownerRecord->role?->name === 'Support Engineer';
+    }
+
     public function table(Table $table): Table
     {
         return $table
             ->recordTitleAttribute('request_number')
             ->modifyQueryUsing(fn ($query) => $query->whereHas('createdBy', fn ($q) => $q->where('id', $this->ownerRecord->id))
-                ->orWhereHas('assignedTo', fn ($q) => $q->where('id', $this->ownerRecord->id)))
+                ->orWhereHas('schedules', fn ($q) => $q->where('engineer_id', $this->ownerRecord->id)))
             ->columns([
                 Tables\Columns\TextColumn::make('request_number')
                     ->label('Request #')
@@ -61,8 +66,8 @@ class ServiceRequestsRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('createdBy.name')
                     ->label('Created By')
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('assignedTo.name')
-                    ->label('Assigned To')
+                Tables\Columns\TextColumn::make('schedules.0.engineer.name')
+                    ->label('Assigned Engineer')
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()

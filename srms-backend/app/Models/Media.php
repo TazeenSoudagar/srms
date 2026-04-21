@@ -17,6 +17,8 @@ class Media extends Model
         'path',
         'mediaable_id',
         'mediaable_type',
+        'collection',
+        'mime_type',
     ];
 
     public function mediaable()

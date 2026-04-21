@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Filament\Resources\ServiceRequest\Tables;
 
 use App\Enums\RequestPriority;
@@ -19,6 +18,7 @@ class ServiceRequestsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('request_number')
                     ->searchable()
@@ -30,37 +30,29 @@ class ServiceRequestsTable
                     ->searchable()
                     ->limit(50)
                     ->sortable(),
-                TextColumn::make('status')
-                    ->badge()
-                    // ->color(fn (string $state): string => match ($state) {
-                    //     'open' => 'info',
-                    //     'in_progress' => 'warning',
-                    //     'closed' => 'success',
-                    //     default => 'gray',
-                    // })
-                    ->sortable(),
                 TextColumn::make('priority')
                     ->badge()
-                    // ->color(fn (string $state): string => match ($state) {
-                    //     'high' => 'danger',
-                    //     'medium' => 'warning',
-                    //     'low' => 'info',
-                    //     default => 'gray',
-                    // })
+                // ->color(fn (string $state): string => match ($state) {
+                //     'high' => 'danger',
+                //     'medium' => 'warning',
+                //     'low' => 'info',
+                //     default => 'gray',
+                // })
                     ->sortable(),
                 TextColumn::make('createdBy.first_name')
                     ->label('Created By')
-                    ->formatStateUsing(fn ($record) => $record->createdBy ? $record->createdBy->first_name.' '.$record->createdBy->last_name : '-')
+                    ->formatStateUsing(fn($record) => $record->createdBy ? $record->createdBy->first_name . ' ' . $record->createdBy->last_name : '-')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('assignedTo.first_name')
-                    ->label('Assigned To')
-                    ->formatStateUsing(fn ($record) => $record->assignedTo ? $record->assignedTo->first_name.' '.$record->assignedTo->last_name : '-')
-                    ->searchable()
-                    ->sortable(),
-                TextColumn::make('due_date')
-                    ->date()
-                    ->sortable(),
+                TextColumn::make('schedules.engineer.first_name')
+                    ->label('Assigned Engineers')
+                    ->formatStateUsing(fn($record) => $record->schedules
+                            ->pluck('engineer')
+                            ->unique('id')
+                            ->map(fn($eng) => $eng->first_name . ' ' . $eng->last_name)->join(', ') ?: 'Not scheduled')
+                    ->badge()
+                    ->color(fn($record) => $record->schedules->count() > 0 ? 'success' : 'warning')
+                    ->toggleable(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -71,9 +63,7 @@ class ServiceRequestsTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('status')
-                    ->options(RequestStatus::options())
-                    ->multiple(),
+
                 SelectFilter::make('priority')
                     ->options(RequestPriority::options())
                     ->multiple(),
@@ -81,10 +71,11 @@ class ServiceRequestsTable
                     ->relationship('service', 'name')
                     ->label('Service')
                     ->multiple(),
-                SelectFilter::make('assigned_to')
-                    ->relationship('assignedTo', 'first_name', fn ($query) => $query->whereHas('role', fn ($q) => $q->where('name', 'Support Engineer')))
+                SelectFilter::make('engineer_id')
                     ->label('Assigned Engineer')
-                    ->multiple(),
+                    ->query(fn($query, $data) => $data['value'] ? $query->whereHas('schedules', fn($q) => $q->where('engineer_id', $data['value'])) : $query)
+                    ->options(fn() => \App\Models\User::whereHas('role', fn($q) => $q->where('name', 'Support Engineer'))->pluck('first_name', 'id'))
+                    ->searchable(),
                 Filter::make('created_at')
                     ->form([
                         \Filament\Forms\Components\DatePicker::make('created_from')
@@ -96,11 +87,11 @@ class ServiceRequestsTable
                         return $query
                             ->when(
                                 $data['created_from'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
                             )
                             ->when(
                                 $data['created_until'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
                             );
                     }),
             ])
@@ -110,7 +101,7 @@ class ServiceRequestsTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    // DeleteBulkAction::make(),
                 ]),
             ]);
     }

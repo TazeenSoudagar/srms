@@ -25,8 +25,9 @@ class NewCommentAdded extends Notification
         $requestNumber = $commentable?->request_number ?? 'Unknown';
 
         return [
+            'format' => 'filament',
             'title' => 'New Comment Added',
-            'message' => "A new comment was added to service request #{$requestNumber}.",
+            'body' => "A new comment was added to service request #{$requestNumber}.",
             'comment_id' => $this->comment->id,
             'service_request_id' => $commentable?->id,
             'request_number' => $requestNumber,

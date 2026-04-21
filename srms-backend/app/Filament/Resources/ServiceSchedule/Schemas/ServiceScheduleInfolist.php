@@ -68,6 +68,51 @@ class ServiceScheduleInfolist
                     ->columns(3)
                     ->columnSpanFull(),
 
+                Section::make('Pricing & Payment')
+                    ->schema([
+                        TextEntry::make('actual_price')
+                            ->label('Service Charge')
+                            ->formatStateUsing(fn ($state) => $state ? '₹'.number_format((float) $state, 2) : 'Not set')
+                            ->color(fn ($state) => $state ? 'success' : 'gray'),
+                        TextEntry::make('gst_amount')
+                            ->label('GST (18%)')
+                            ->formatStateUsing(fn ($state) => $state ? '₹'.number_format((float) $state, 2) : '—'),
+                        TextEntry::make('total_amount')
+                            ->label('Total Amount')
+                            ->formatStateUsing(fn ($state) => $state ? '₹'.number_format((float) $state, 2) : '—')
+                            ->weight('bold')
+                            ->color('primary'),
+                        TextEntry::make('payment_status')
+                            ->label('Payment Status')
+                            ->badge()
+                            ->color(fn (?string $state): string => match ($state) {
+                                'pending'       => 'warning',
+                                'paid'          => 'info',
+                                'paid_verified' => 'success',
+                                default         => 'gray',
+                            })
+                            ->formatStateUsing(fn (?string $state): string => match ($state) {
+                                'pending'       => 'Pending',
+                                'paid'          => 'Proof Uploaded',
+                                'paid_verified' => 'Verified',
+                                default         => '—',
+                            }),
+                        TextEntry::make('payment_due_at')
+                            ->label('Payment Due')
+                            ->dateTime('F j, Y')
+                            ->placeholder('—'),
+                        TextEntry::make('payment_uploaded_at')
+                            ->label('Proof Uploaded At')
+                            ->dateTime('F j, Y g:i A')
+                            ->placeholder('—'),
+                        TextEntry::make('payment_verified_at')
+                            ->label('Verified At')
+                            ->dateTime('F j, Y g:i A')
+                            ->placeholder('—'),
+                    ])
+                    ->columns(4)
+                    ->columnSpanFull(),
+
                 Section::make('Location')
                     ->schema([
                         TextEntry::make('location')

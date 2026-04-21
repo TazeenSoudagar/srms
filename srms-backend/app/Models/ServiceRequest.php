@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class ServiceRequest extends Model
@@ -24,9 +25,10 @@ class ServiceRequest extends Model
         'created_by',
         'title',
         'description',
+        'preferred_time_slot',
+        'service_location',
         'status',
         'priority',
-        'assigned_to',
         'due_date',
         'updated_by',
         'is_active',
@@ -34,6 +36,7 @@ class ServiceRequest extends Model
 
     protected $casts = [
         'due_date' => 'date',
+        'preferred_time_slot' => 'datetime',
         'closed_at' => 'datetime',
         'is_active' => 'boolean',
         'status' => RequestStatus::class,
@@ -70,11 +73,12 @@ class ServiceRequest extends Model
 
     /**
      * Get the user assigned to this request.
+     * Note: Assignment now happens at schedule level via ServiceSchedule model.
      */
-    public function assignedTo(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'assigned_to');
-    }
+    // public function assignedTo(): BelongsTo
+    // {
+    //     return $this->belongsTo(User::class, 'assigned_to');
+    // }
 
     /**
      * Get the user who last updated this request.
@@ -109,6 +113,21 @@ class ServiceRequest extends Model
     }
 
     /**
+     * Get the invoice for this service request (through the completed schedule).
+     */
+    public function invoice(): HasOneThrough
+    {
+        return $this->hasOneThrough(
+            Invoice::class,
+            ServiceSchedule::class,
+            'service_request_id',
+            'schedule_id',
+            'id',
+            'id'
+        );
+    }
+
+    /**
      * Get all schedules for this service request.
      */
     public function schedules(): \Illuminate\Database\Eloquent\Relations\HasMany
@@ -127,7 +146,7 @@ class ServiceRequest extends Model
     /**
      * Scope to filter requests accessible by a user.
      * Admin: all requests
-     * Support Engineer: assigned requests
+     * Support Engineer: requests with schedules assigned to them
      * Client: own requests
      */
     public function scopeForUser(Builder $query, User $user): Builder
@@ -139,7 +158,10 @@ class ServiceRequest extends Model
         }
 
         if ($roleName === 'support engineer') {
-            return $query->where('assigned_to', $user->id);
+            // Show requests that have schedules assigned to this engineer
+            return $query->whereHas('schedules', function ($q) use ($user) {
+                $q->where('engineer_id', $user->id);
+            });
         }
 
         if ($roleName === 'client') {
@@ -166,11 +188,13 @@ class ServiceRequest extends Model
     }
 
     /**
-     * Scope to filter by assigned engineer.
+     * Scope to filter by assigned engineer via schedules.
      */
     public function scopeAssignedTo(Builder $query, int $userId): Builder
     {
-        return $query->where('assigned_to', $userId);
+        return $query->whereHas('schedules', function ($q) use ($userId) {
+            $q->where('engineer_id', $userId);
+        });
     }
 
     /**
@@ -205,7 +229,8 @@ class ServiceRequest extends Model
         return $query->where(function ($q) use ($search) {
             $q->where('title', 'like', "%{$search}%")
                 ->orWhere('description', 'like', "%{$search}%")
-                ->orWhere('request_number', 'like', "%{$search}%");
+                ->orWhere('request_number', 'like', "%{$search}%")
+                ->orWhereHas('service', fn ($sq) => $sq->where('name', 'like', "%{$search}%"));
         });
     }
 

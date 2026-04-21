@@ -22,10 +22,11 @@ class ScheduleCreated extends Notification
     public function toArray($notifiable): array
     {
         return [
+            'format' => 'filament',
             'title' => 'Schedule Created',
-            'message' => "A new appointment has been scheduled for " . $this->schedule->scheduled_at->format('M j, Y g:i A'),
-            'schedule_id' => $this->schedule->id,
-            'service_request_id' => $this->schedule->service_request_id,
+            'body' => "A new appointment has been scheduled for " . $this->schedule->scheduled_at->format('M j, Y g:i A'),
+            'schedule_id' => $this->schedule->hashed_id,
+            'service_request_id' => \Vinkla\Hashids\Facades\Hashids::encode($this->schedule->service_request_id),
             'scheduled_at' => $this->schedule->scheduled_at->toISOString(),
             'icon' => 'heroicon-o-calendar',
             'color' => 'success',

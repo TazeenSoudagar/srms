@@ -22,8 +22,9 @@ class ServiceRequestAssigned extends Notification
     public function toArray($notifiable): array
     {
         return [
+            'format' => 'filament',
             'title' => 'Service Request Assigned',
-            'message' => "You have been assigned to service request #{$this->serviceRequest->request_number}.",
+            'body' => "You have been assigned to service request #{$this->serviceRequest->request_number}.",
             'service_request_id' => $this->serviceRequest->id,
             'request_number' => $this->serviceRequest->request_number,
             'icon' => 'heroicon-o-user-plus',

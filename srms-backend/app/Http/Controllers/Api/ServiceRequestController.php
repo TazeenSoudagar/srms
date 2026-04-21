@@ -12,11 +12,14 @@ use App\Http\Requests\ServiceRequest\UpdateStatusRequest;
 use App\Http\Resources\ServiceRequest\ServiceRequestCollection;
 use App\Http\Resources\ServiceRequest\ServiceRequestResource;
 use App\Models\ServiceRequest;
+use App\Models\User;
+use App\Notifications\AdminNewServiceRequest;
 use App\Services\ActivityLogService;
 use App\Services\HashidsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 
 class ServiceRequestController extends Controller
 {
@@ -28,7 +31,7 @@ class ServiceRequestController extends Controller
         $this->authorize('viewAny', ServiceRequest::class);
 
         $user = Auth::user();
-        $query = ServiceRequest::with(['service', 'createdBy', 'assignedTo', 'updatedBy'])
+        $query = ServiceRequest::with(['service', 'createdBy', 'updatedBy', 'schedules.engineer'])
             ->forUser($user)
             ->where('is_active', true);
 
@@ -94,9 +97,21 @@ class ServiceRequestController extends Controller
             $query->search($request->search);
         }
 
+        // Sorting
+        if ($request->filled('sort_by') && in_array($request->sort_by, ['created_at', 'updated_at', 'status', 'priority'], true)) {
+            $sortOrder = $request->sort_order === 'asc' ? 'asc' : 'desc';
+            $query->orderBy($request->sort_by, $sortOrder);
+        } elseif (! $request->filled('status')) {
+            // Default "All" view: open → in_progress → closed → cancelled, then newest first
+            $query->orderByRaw("FIELD(status, 'open', 'in_progress', 'closed', 'cancelled')")
+                  ->orderBy('created_at', 'desc');
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
         // Pagination
         $perPage = min((int) ($request->per_page ?? 15), 100); // Max 100 per page
-        $serviceRequests = $query->latest()->paginate($perPage);
+        $serviceRequests = $query->paginate($perPage);
 
         return new ServiceRequestCollection($serviceRequests);
     }
@@ -117,13 +132,17 @@ class ServiceRequestController extends Controller
         $data['is_active'] = true;
 
         $serviceRequest = ServiceRequest::create($data);
-        $serviceRequest->load(['service', 'createdBy', 'assignedTo']);
+        $serviceRequest->load(['service', 'createdBy']);
 
         // Log activity
         ActivityLogService::logCreated($user, $serviceRequest, [
             'title' => $serviceRequest->title,
             'service' => $serviceRequest->service->name ?? null,
         ]);
+
+        // Notify all admins and support engineers
+        $admins = User::whereHas('role', fn ($q) => $q->whereIn('name', ['Admin', 'Support Engineer']))->get();
+        Notification::send($admins, new AdminNewServiceRequest($serviceRequest));
 
         return (new ServiceRequestResource($serviceRequest))
             ->response()
@@ -140,8 +159,9 @@ class ServiceRequestController extends Controller
         $serviceRequest->load([
             'service',
             'createdBy',
-            'assignedTo',
             'updatedBy',
+            'schedules.engineer',
+            'schedules.invoice',
             'comments.user.role',
             'media',
         ]);
@@ -167,7 +187,7 @@ class ServiceRequestController extends Controller
         $data['updated_by'] = $user->id;
 
         $serviceRequest->update($data);
-        $serviceRequest->load(['service', 'createdBy', 'assignedTo', 'updatedBy']);
+        $serviceRequest->load(['service', 'createdBy', 'updatedBy']);
 
         // Log activity with changed fields (excluding system fields)
         ActivityLogService::logUpdated($user, $serviceRequest, [
@@ -201,28 +221,53 @@ class ServiceRequestController extends Controller
     /**
      * Assign a service request to a support engineer.
      */
-    public function assign(AssignServiceRequestRequest $request, ServiceRequest $serviceRequest): ServiceRequestResource
+    public function assign(AssignServiceRequestRequest $request, ServiceRequest $serviceRequest): JsonResponse
     {
         $this->authorize('assign', $serviceRequest);
 
         $user = Auth::user();
-        $assignedTo = \App\Models\User::findOrFail($request->assigned_to);
-        $oldAssignedTo = $serviceRequest->assignedTo;
+        $engineer = \App\Models\User::findOrFail($request->assigned_to);
 
+        // Create a schedule instead of directly assigning
+        $serviceRequest->load('service');
+
+        $scheduleData = [
+            'service_request_id' => $serviceRequest->id,
+            'customer_id' => $serviceRequest->created_by,
+            'engineer_id' => $engineer->id,
+            'scheduled_at' => $serviceRequest->preferred_time_slot ?? now()->addDay(),
+            'estimated_duration_minutes' => $serviceRequest->service?->average_duration_minutes ?? 60,
+            'status' => 'pending',
+        ];
+
+        $schedule = \App\Models\ServiceSchedule::create($scheduleData);
+        $schedule->load(['serviceRequest', 'customer', 'engineer']);
+
+        broadcast(new \App\Events\ScheduleCreated($schedule))->toOthers();
+
+        $customer = \App\Models\User::find($serviceRequest->created_by);
+        $customer?->notify(new \App\Notifications\ScheduleCreated($schedule));
+
+        $engineer->notify(new \App\Notifications\EngineerAssigned($schedule));
+
+        // Update service request
         $serviceRequest->update([
-            'assigned_to' => $request->assigned_to,
+            'status' => 'in_progress',
             'updated_by' => $user->id,
         ]);
 
-        $serviceRequest->load(['service', 'createdBy', 'assignedTo', 'updatedBy']);
-
         // Log activity
-        ActivityLogService::logAssigned($user, $serviceRequest, $assignedTo, [
-            'previous_assigned_to' => $oldAssignedTo?->id,
-            'previous_assigned_to_name' => $oldAssignedTo ? $oldAssignedTo->first_name.' '.$oldAssignedTo->last_name : null,
+        ActivityLogService::logAssigned($user, $serviceRequest, $engineer, [
+            'schedule_id' => $schedule->id,
+            'scheduled_at' => $schedule->scheduled_at->toISOString(),
         ]);
 
-        return new ServiceRequestResource($serviceRequest);
+        $serviceRequest->load(['service', 'createdBy', 'updatedBy']);
+
+        return (new ServiceRequestResource($serviceRequest))
+            ->additional(['schedule' => $schedule])
+            ->response()
+            ->setStatusCode(201);
     }
 
     /**
@@ -252,10 +297,13 @@ class ServiceRequestController extends Controller
         }
 
         $serviceRequest->update($updateData);
-        $serviceRequest->load(['service', 'createdBy', 'assignedTo', 'updatedBy']);
+        $serviceRequest->load(['service', 'createdBy', 'updatedBy', 'schedules.engineer']);
 
         // Log activity
         ActivityLogService::logStatusChanged($user, $serviceRequest, $oldStatus, $newStatus);
+
+        // Notify relevant parties of status change
+        $this->notifyStatusChange($serviceRequest, $oldStatus, $newStatus, $user);
 
         return new ServiceRequestResource($serviceRequest);
     }
@@ -276,14 +324,47 @@ class ServiceRequestController extends Controller
             'updated_by' => $user->id,
         ]);
 
-        $serviceRequest->load(['service', 'createdBy', 'assignedTo', 'updatedBy']);
+        $serviceRequest->load(['service', 'createdBy', 'updatedBy', 'schedules.engineer']);
 
         // Log activity
         ActivityLogService::logClosed($user, $serviceRequest, [
             'previous_status' => $oldStatus,
         ]);
 
+        // Notify relevant parties
+        $this->notifyStatusChange($serviceRequest, $oldStatus, 'closed', $user);
+
         return new ServiceRequestResource($serviceRequest);
+    }
+
+    private function notifyStatusChange(
+        ServiceRequest $serviceRequest,
+        string $oldStatus,
+        string $newStatus,
+        User $actor
+    ): void {
+        $notification = new \App\Notifications\ServiceRequestStatusChanged($serviceRequest, $oldStatus, $newStatus);
+
+        // Notify customer (unless they triggered the change)
+        $customer = User::find($serviceRequest->created_by);
+        if ($customer && $customer->id !== $actor->id) {
+            $customer->notify($notification);
+        }
+
+        // Notify assigned engineers (unless one of them triggered the change)
+        $serviceRequest->schedules->each(function ($schedule) use ($notification, $actor) {
+            if ($schedule->engineer && $schedule->engineer->id !== $actor->id) {
+                $schedule->engineer->notify($notification);
+            }
+        });
+
+        // Notify admins
+        $admins = User::whereHas('role', fn ($q) => $q->where('name', 'Admin'))->get();
+        $admins->each(function ($admin) use ($notification, $actor) {
+            if ($admin->id !== $actor->id) {
+                $admin->notify($notification);
+            }
+        });
     }
 
     /**
@@ -310,7 +391,12 @@ class ServiceRequestController extends Controller
             'updated_by' => $user->id,
         ]);
 
-        $serviceRequest->load(['service', 'createdBy', 'assignedTo', 'updatedBy']);
+        // Cascade: cancel all pending/confirmed schedules so engineers are notified
+        $serviceRequest->schedules()
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->update(['status' => 'cancelled']);
+
+        $serviceRequest->load(['service', 'createdBy', 'updatedBy']);
 
         // Log activity
         ActivityLogService::logStatusChanged($user, $serviceRequest, $oldStatus, 'cancelled');

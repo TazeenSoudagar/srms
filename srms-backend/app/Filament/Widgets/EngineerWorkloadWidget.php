@@ -20,7 +20,7 @@ class EngineerWorkloadWidget extends BaseWidget
             ->query(User::query()
                 ->whereHas('role', fn ($q) => $q->where('name', 'Support Engineer'))
                 ->withCount(['assignedServiceRequests' => fn ($q) => $q->whereNotIn('status', ['resolved', 'closed', 'cancelled'])])
-                ->with('ratingAggregate')
+                ->with(['ratingAggregate', 'engineerProfile'])
                 ->orderBy('assigned_service_requests_count', 'desc'))
             ->columns([
                 Tables\Columns\TextColumn::make('name')
@@ -38,7 +38,7 @@ class EngineerWorkloadWidget extends BaseWidget
                 Tables\Columns\TextColumn::make('ratingAggregate.average_rating')
                     ->label('Avg Rating')
                     ->formatStateUsing(fn ($state) => $state ? number_format($state, 2) . ' ⭐' : '—'),
-                Tables\Columns\TextColumn::make('availability_status')
+                Tables\Columns\TextColumn::make('engineerProfile.availability_status')
                     ->label('Status')
                     ->badge()
                     ->formatStateUsing(fn ($state) => $state ? ucfirst($state) : 'Available'),

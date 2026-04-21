@@ -9,10 +9,14 @@ use App\Http\Requests\Comment\StoreCommentRequest;
 use App\Http\Resources\CommentResource;
 use App\Models\Comment;
 use App\Models\ServiceRequest;
+use App\Models\User;
+use App\Notifications\AdminNewComment;
+use App\Notifications\NewCommentAdded;
 use App\Services\ActivityLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 
 class CommentController extends Controller
 {
@@ -25,7 +29,7 @@ class CommentController extends Controller
         $this->authorize('view', $serviceRequest);
 
         $comments = $serviceRequest->comments()
-            ->with('user')
+            ->with('user.role')
             ->latest()
             ->get();
 
@@ -49,13 +53,40 @@ class CommentController extends Controller
             'body' => $request->body,
         ]);
 
-        $comment->load('user');
+        $comment->load('user.role');
 
         // Log activity
         ActivityLogService::logCreated($user, $comment, [
             'service_request_id' => $serviceRequest->id,
             'service_request_number' => $serviceRequest->request_number,
         ]);
+
+        $roleName = $user->role?->name;
+
+        if ($roleName === 'Client') {
+            // Customer commented — notify admins and the assigned engineer
+            $admins = User::whereHas('role', fn ($q) => $q->where('name', 'Admin'))->get();
+            Notification::send($admins, new AdminNewComment($comment, $serviceRequest));
+
+            $serviceRequest->loadMissing('schedules.engineer');
+            $serviceRequest->schedules->each(function ($schedule) use ($comment, $serviceRequest, $user) {
+                if ($schedule->engineer && $schedule->engineer->id !== $user->id) {
+                    $schedule->engineer->notify(new NewCommentAdded($comment));
+                }
+            });
+        } elseif (\in_array($roleName, ['Support Engineer', 'Admin'], true)) {
+            // Engineer or admin commented — notify the customer
+            $customer = User::find($serviceRequest->created_by);
+            if ($customer && $customer->id !== $user->id) {
+                $customer->notify(new NewCommentAdded($comment));
+            }
+
+            // Also notify admins if a support engineer commented
+            if ($roleName === 'Support Engineer') {
+                $admins = User::whereHas('role', fn ($q) => $q->where('name', 'Admin'))->get();
+                Notification::send($admins, new AdminNewComment($comment, $serviceRequest));
+            }
+        }
 
         return (new CommentResource($comment))
             ->response()
@@ -75,7 +106,7 @@ class CommentController extends Controller
         $this->authorize('view', $comment);
         $this->authorize('view', $serviceRequest);
 
-        $comment->load('user');
+        $comment->load('user.role');
 
         return new CommentResource($comment);
     }
@@ -100,7 +131,7 @@ class CommentController extends Controller
             'body' => $request->body,
         ]);
 
-        $comment->load('user');
+        $comment->load('user.role');
 
         // Log activity
         ActivityLogService::logUpdated($user, $comment, [

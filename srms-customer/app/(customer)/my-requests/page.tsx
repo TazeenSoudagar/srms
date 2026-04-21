@@ -11,13 +11,15 @@ import {
   Plus,
   XCircle,
   Loader2,
+  Star,
 } from "lucide-react";
 import Container from "@/components/layout/Container";
 import Card from "@/components/common/Card";
 import Button from "@/components/common/Button";
 import Badge from "@/components/common/Badge";
+import RatingModal from "@/components/ratings/RatingModal";
 import { serviceRequestsApi } from "@/lib/api/requests";
-import { ServiceRequest, ServiceRequestStatus } from "@/lib/types/request";
+import { Rating, ServiceRequest, ServiceRequestStatus } from "@/lib/types/request";
 
 const statusConfig: Record<
   ServiceRequestStatus,
@@ -58,6 +60,7 @@ export default function MyRequestsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
   const [error, setError] = useState<string | null>(null);
+  const [ratingModalRequestId, setRatingModalRequestId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchRequests();
@@ -79,6 +82,13 @@ export default function MyRequestsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRatingSuccess = (requestId: string, rating: Rating) => {
+    setRequests((prev) =>
+      prev.map((r) => (r.id === requestId ? { ...r, rating } : r))
+    );
+    setRatingModalRequestId(null);
   };
 
   const priorityConfig = {
@@ -163,19 +173,21 @@ export default function MyRequestsPage() {
                 const status =
                   statusConfig[request.status] || statusConfig.open;
                 const StatusIcon = status.icon;
+                const isClosed = request.status === "closed";
+                const hasRating = isClosed && request.rating != null;
+                const ratingModalOpen = ratingModalRequestId === request.id;
 
                 return (
-                  <Link
-                    key={request.id}
-                    href={`/my-requests/${request.id}`}
-                    className="block"
-                  >
-                    <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                  <div key={request.id}>
+                    <Card className="hover:shadow-lg transition-shadow">
                       <div className="p-6">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between mb-3 gap-3">
+                          <Link
+                            href={`/my-requests/${request.id}`}
+                            className="flex-1 min-w-0 block"
+                          >
                             <div className="flex flex-wrap items-center gap-2 mb-1">
-                              <h3 className="font-semibold text-neutral-900 truncate">
+                              <h3 className="font-semibold text-neutral-900 truncate hover:text-primary-600 transition-colors">
                                 {request.title}
                               </h3>
                               <Badge className={status.color}>
@@ -203,63 +215,96 @@ export default function MyRequestsPage() {
                             <p className="text-sm text-neutral-600 line-clamp-2">
                               {request.description}
                             </p>
-                          </div>
+                          </Link>
+
+                          {/* Rating badge or button — only for closed requests */}
+                          {isClosed && (
+                            <div className="flex-shrink-0">
+                              {hasRating ? (
+                                <button
+                                  onClick={() => setRatingModalRequestId(request.id)}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-sm font-medium hover:bg-amber-100 transition-colors"
+                                  aria-label="View your rating"
+                                >
+                                  <Star className="h-3.5 w-3.5 fill-current text-amber-500" />
+                                  Rated {request.rating!.rating}/5
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => setRatingModalRequestId(request.id)}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-teal-400 text-teal-600 text-sm font-medium hover:bg-teal-50 transition-colors"
+                                  aria-label="Rate this service"
+                                >
+                                  <Star className="h-3.5 w-3.5" />
+                                  Rate Service
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-4 text-sm text-neutral-500 mt-3 pt-3 border-t border-neutral-100">
-                          {request.service && (
-                            <div className="flex items-center gap-1.5">
-                              <Package className="h-4 w-4" />
-                              <span>{request.service.name}</span>
-                            </div>
-                          )}
-                          {request.due_date && (
-                            <div className="flex items-center gap-1.5">
-                              <Calendar className="h-4 w-4" />
-                              <span>
-                                Due{" "}
-                                {new Date(
-                                  request.due_date
-                                ).toLocaleDateString()}
-                              </span>
-                            </div>
-                          )}
-                          {request.created_at && (
-                            <div className="flex items-center gap-1.5">
-                              <Clock className="h-4 w-4" />
-                              <span>
-                                {new Date(
-                                  request.created_at
-                                ).toLocaleDateString()}
-                              </span>
-                            </div>
-                          )}
-                          {request.assigned_to && (
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-neutral-400">
-                                Assigned to:
-                              </span>
-                              <span className="font-medium text-neutral-700">
-                                {request.assigned_to.first_name}{" "}
-                                {request.assigned_to.last_name}
-                              </span>
-                            </div>
-                          )}
-                          {typeof request.comments_count === "number" &&
-                            request.comments_count > 0 && (
+                        <Link
+                          href={`/my-requests/${request.id}`}
+                          className="block"
+                          tabIndex={-1}
+                          aria-hidden="true"
+                        >
+                          <div className="flex flex-wrap items-center gap-4 text-sm text-neutral-500 mt-3 pt-3 border-t border-neutral-100">
+                            {request.service && (
                               <div className="flex items-center gap-1.5">
+                                <Package className="h-4 w-4" />
+                                <span>{request.service.name}</span>
+                              </div>
+                            )}
+                            {request.due_date && (
+                              <div className="flex items-center gap-1.5">
+                                <Calendar className="h-4 w-4" />
                                 <span>
-                                  {request.comments_count}{" "}
-                                  {request.comments_count === 1
-                                    ? "comment"
-                                    : "comments"}
+                                  Due{" "}
+                                  {new Date(
+                                    request.due_date
+                                  ).toLocaleDateString()}
                                 </span>
                               </div>
                             )}
-                        </div>
+                            {request.created_at && (
+                              <div className="flex items-center gap-1.5">
+                                <Clock className="h-4 w-4" />
+                                <span>
+                                  {new Date(
+                                    request.created_at
+                                  ).toLocaleDateString()}
+                                </span>
+                              </div>
+                            )}
+                            {typeof request.comments_count === "number" &&
+                              request.comments_count > 0 && (
+                                <div className="flex items-center gap-1.5">
+                                  <span>
+                                    {request.comments_count}{" "}
+                                    {request.comments_count === 1
+                                      ? "comment"
+                                      : "comments"}
+                                  </span>
+                                </div>
+                              )}
+                          </div>
+                        </Link>
                       </div>
                     </Card>
-                  </Link>
+
+                    {/* Rating Modal for this request */}
+                    {isClosed && ratingModalOpen && (
+                      <RatingModal
+                        isOpen={ratingModalOpen}
+                        onClose={() => setRatingModalRequestId(null)}
+                        requestId={request.id}
+                        requestTitle={request.title}
+                        existingRating={request.rating}
+                        onSuccess={(rating) => handleRatingSuccess(request.id, rating)}
+                      />
+                    )}
+                  </div>
                 );
               })}
             </div>

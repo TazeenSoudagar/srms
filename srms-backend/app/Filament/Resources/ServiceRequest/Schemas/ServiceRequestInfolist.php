@@ -36,9 +36,11 @@ class ServiceRequestInfolist
                         TextEntry::make('createdBy.first_name')
                             ->label('Created By')
                             ->formatStateUsing(fn ($record) => $record->createdBy ? $record->createdBy->first_name.' '.$record->createdBy->last_name.' ('.$record->createdBy->email.')' : '-'),
-                        TextEntry::make('assignedTo.first_name')
-                            ->label('Assigned To')
-                            ->formatStateUsing(fn ($record) => $record->assignedTo ? $record->assignedTo->first_name.' '.$record->assignedTo->last_name.' ('.$record->assignedTo->email.')' : 'Unassigned'),
+                        TextEntry::make('schedules.engineer.first_name')
+                            ->label('Assigned Engineers')
+                            ->formatStateUsing(fn ($record) => $record->schedules->pluck('engineer')->unique('id')->map(fn($eng) => $eng ? $eng->first_name.' '.$eng->last_name.' ('.$eng->email.')' : 'Unknown')->join(', ') ?: 'Not scheduled yet')
+                            ->badge()
+                            ->color(fn ($record) => $record->schedules->count() > 0 ? 'success' : 'warning'),
                         TextEntry::make('updatedBy.first_name')
                             ->label('Last Updated By')
                             ->formatStateUsing(fn ($record) => $record->updatedBy ? $record->updatedBy->first_name.' '.$record->updatedBy->last_name : '-'),

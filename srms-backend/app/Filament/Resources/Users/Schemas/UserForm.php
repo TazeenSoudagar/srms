@@ -2,11 +2,10 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
-use Filament\Forms\Components\DateTimePicker;
+use App\Models\Service;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -47,9 +46,6 @@ class UserForm
                             ->label('Active')
                             ->default(true)
                             ->required(),
-                        DateTimePicker::make('email_verified_at')
-                            ->label('Email Verified At')
-                            ->native(false),
                     ])
                     ->columns(2)
                     ->columnSpanFull(),
@@ -100,11 +96,13 @@ class UserForm
                             ->minValue(0)
                             ->maxValue(50)
                             ->suffix('years'),
-                        TagsInput::make('specializations')
+                        Select::make('specializations')
                             ->label('Specializations')
-                            ->placeholder('Add specialization...')
+                            ->multiple()
+                            ->options(fn () => Service::active()->pluck('name', 'name')->toArray())
+                            ->searchable()
                             ->columnSpanFull()
-                            ->helperText('Press Enter to add each specialization'),
+                            ->helperText('Select the services this engineer specialises in'),
                         Select::make('availability_status')
                             ->label('Availability Status')
                             ->options([
@@ -117,7 +115,28 @@ class UserForm
                     ])
                     ->columns(2)
                     ->columnSpanFull()
-                    ->visible(fn (Get $get) => $get('role_id') == 2) // Assuming role_id 2 is Support Engineer
+                    ->visible(fn (Get $get) => self::isSupportEngineer($get('role_id')))
+                    ->collapsible(),
+
+                Section::make('Engineer Documents')
+                    ->description('Upload verification documents for the engineer (ID proof, certifications, etc.). Engineers cannot log in without at least one document.')
+                    ->schema([
+                        FileUpload::make('engineer_documents')
+                            ->label('Documents')
+                            ->multiple()
+                            ->disk('public')
+                            ->directory('engineer-documents')
+                            ->maxSize(5120)
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'application/pdf'])
+                            ->downloadable()
+                            ->openable()
+                            ->previewable()
+                            ->reorderable()
+                            ->columnSpanFull()
+                            ->helperText('Accepted: JPG, PNG, WEBP, PDF. Max 5MB per file. Engineers must have at least one document to log in.'),
+                    ])
+                    ->columnSpanFull()
+                    ->visible(fn (Get $get) => self::isSupportEngineer($get('role_id')))
                     ->collapsible(),
 
                 Section::make('Location Information')
@@ -132,23 +151,20 @@ class UserForm
                             ->maxLength(255),
                         TextInput::make('country')
                             ->maxLength(255),
-                        TextInput::make('latitude')
-                            ->numeric()
-                            ->minValue(-90)
-                            ->maxValue(90)
-                            ->step(0.000001)
-                            ->placeholder('e.g., 40.7128'),
-                        TextInput::make('longitude')
-                            ->numeric()
-                            ->minValue(-180)
-                            ->maxValue(180)
-                            ->step(0.000001)
-                            ->placeholder('e.g., -74.0060'),
                     ])
                     ->columns(3)
                     ->columnSpanFull()
-                    ->visible(fn (Get $get) => $get('role_id') == 2) // Assuming role_id 2 is Support Engineer
+                    ->visible(fn (Get $get) => self::isSupportEngineer($get('role_id')))
                     ->collapsible(),
             ]);
+    }
+
+    private static function isSupportEngineer(mixed $roleId): bool
+    {
+        if (! $roleId) {
+            return false;
+        }
+
+        return \App\Models\Role::find($roleId)?->name === 'Support Engineer';
     }
 }
