@@ -191,7 +191,7 @@ export default function ServiceDetailsPage() {
               </div>
 
               {/* Service Name */}
-              <h1 className="text-3xl md:text-4xl mb-3">{service.name}</h1>
+              <p className="text-xl font-bold text-neutral-900 mb-3">{service.name}</p>
 
               {/* Rating */}
               {service.rating && (
@@ -229,7 +229,7 @@ export default function ServiceDetailsPage() {
                 <div className="flex items-end justify-between mb-4">
                   <div>
                     <p className="text-xs text-neutral-500 mb-1">Starting at</p>
-                    <p className="text-3xl font-bold text-primary-600">
+                    <p className="text-2xl font-bold text-primary-600">
                       {formatPrice(service.basePrice)}
                     </p>
                   </div>
@@ -252,9 +252,9 @@ export default function ServiceDetailsPage() {
       </div>
 
       {/* Key Features Section */}
-      <div className="bg-white py-12 lg:py-16">
+      <div className="bg-white py-8 lg:py-10">
         <Container>
-          <h2 className="text-center mb-10">Why Choose Us</h2>
+          <p className="text-base font-semibold text-neutral-900 text-center mb-8">Why Choose Us</p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {keyFeatures.map((feature, index) => (
               <Card
@@ -262,10 +262,10 @@ export default function ServiceDetailsPage() {
                 padding="lg"
                 className="text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
               >
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-100 text-primary-600 mb-4">
-                  <feature.icon className="h-8 w-8" />
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 text-primary-600 mb-4">
+                  <feature.icon className="h-6 w-6" />
                 </div>
-                <h5 className="mb-2">{feature.title}</h5>
+                <p className="text-sm font-semibold text-neutral-900 mb-2">{feature.title}</p>
                 <p className="text-sm text-neutral-600">{feature.description}</p>
               </Card>
             ))}
@@ -274,10 +274,10 @@ export default function ServiceDetailsPage() {
       </div>
 
       {/* What's Included Section */}
-      <div className="bg-neutral-50 py-12 lg:py-16">
+      <div className="bg-neutral-50 py-8 lg:py-10">
         <Container>
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-center mb-10">What's Included</h2>
+            <p className="text-base font-semibold text-neutral-900 text-center mb-6">What's Included</p>
             <Card padding="lg" variant="elevated">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {benefits.map((benefit, index) => (
@@ -293,9 +293,9 @@ export default function ServiceDetailsPage() {
       </div>
 
       {/* How It Works Section */}
-      <div className="bg-white py-12 lg:py-16">
+      <div className="bg-white py-8 lg:py-10">
         <Container>
-          <h2 className="text-center mb-10">How It Works</h2>
+          <p className="text-base font-semibold text-neutral-900 text-center mb-8">How It Works</p>
           <div className="max-w-5xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
@@ -319,10 +319,10 @@ export default function ServiceDetailsPage() {
                 },
               ].map((step, index) => (
                 <div key={index} className="text-center relative">
-                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 text-white text-3xl font-bold mb-4 shadow-lg">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 text-white text-lg font-bold mb-4 shadow-lg">
                     {step.step}
                   </div>
-                  <h4 className="mb-2">{step.title}</h4>
+                  <p className="text-sm font-semibold text-neutral-900 mb-1">{step.title}</p>
                   <p className="text-neutral-600">{step.description}</p>
                   {index < 2 && (
                     <ChevronRight className="hidden md:block absolute top-8 -right-4 h-8 w-8 text-neutral-300" />
@@ -336,10 +336,10 @@ export default function ServiceDetailsPage() {
 
       {/* Related Services Section */}
       {relatedServices.length > 0 && (
-        <div className="bg-neutral-50 py-12 lg:py-16">
+        <div className="bg-neutral-50 py-8 lg:py-10">
           <Container>
             <div className="flex items-center justify-between mb-8">
-              <h2>Related Services</h2>
+              <p className="text-base font-semibold text-neutral-900">Related Services</p>
               <Link
                 href={`/services?category=${service.category.slug || service.category.id}`}
                 className="text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
@@ -366,14 +366,14 @@ export default function ServiceDetailsPage() {
                       </div>
                     )}
                     <div className="p-4">
-                      <h6 className="mb-2 line-clamp-2">
+                      <p className="text-sm font-medium text-neutral-800 mb-1.5 line-clamp-2">
                         {relatedService.name}
-                      </h6>
+                      </p>
                       <p className="text-sm text-neutral-600 mb-3 line-clamp-2">
                         {relatedService.description}
                       </p>
                       <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold text-primary-600">
+                        <span className="text-sm font-bold text-primary-600">
                           {formatPrice(relatedService.basePrice)}
                         </span>
                         {relatedService.rating && (
