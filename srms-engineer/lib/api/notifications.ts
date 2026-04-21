@@ -12,3 +12,6 @@ export const markAsRead = (id: string) =>
 
 export const markAllAsRead = () =>
   apiClient.post("/notifications/read-all");
+
+export const clearAllNotifications = () =>
+  apiClient.delete("/notifications");

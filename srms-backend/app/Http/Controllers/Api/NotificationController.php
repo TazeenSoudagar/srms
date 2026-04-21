@@ -75,6 +75,16 @@ class NotificationController extends Controller
     }
 
     /**
+     * Delete all notifications for the authenticated user.
+     */
+    public function clearAll(Request $request): JsonResponse
+    {
+        $request->user()->notifications()->delete();
+
+        return response()->json(['message' => 'All notifications cleared']);
+    }
+
+    /**
      * Return the count of unread notifications for the authenticated user.
      */
     public function unreadCount(Request $request): JsonResponse

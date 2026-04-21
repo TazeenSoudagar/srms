@@ -8,6 +8,7 @@ use App\Models\ServiceRequest;
 use App\Models\ServiceSchedule;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
+use Vinkla\Hashids\Facades\Hashids;
 
 class PaymentProofUploaded extends Notification
 {
@@ -29,8 +30,8 @@ class PaymentProofUploaded extends Notification
             'type'               => 'payment_proof_uploaded',
             'title'              => 'Payment Proof Uploaded',
             'body'               => "Customer has uploaded payment proof for {$this->serviceRequest->request_number}. Please review and verify.",
-            'service_request_id' => $this->serviceRequest->id,
-            'schedule_id'        => $this->schedule->id,
+            'service_request_id' => Hashids::encode($this->serviceRequest->id),
+            'schedule_id'        => Hashids::encode($this->schedule->id),
             'request_number'     => $this->serviceRequest->request_number,
             'invoice_number'     => $this->schedule->invoice?->invoice_number,
             'total_amount'       => $this->schedule->total_amount,

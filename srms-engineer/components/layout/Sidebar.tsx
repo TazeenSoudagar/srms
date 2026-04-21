@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ClipboardList, Calendar, User, Bell, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, ClipboardList, Calendar, User, Bell, LogOut, Menu, X, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/requests", label: "My Requests", icon: ClipboardList },
+  { href: "/complaints", label: "Complaints", icon: AlertTriangle },
   { href: "/schedules", label: "Schedules", icon: Calendar },
   { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/profile", label: "Profile", icon: User },

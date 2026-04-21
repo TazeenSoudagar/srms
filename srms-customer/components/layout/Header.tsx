@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { Menu, X, User, Phone, Home, LogOut, UserCircle, FileText, ChevronDown } from "lucide-react";
+import { Menu, X, User, Phone, Home, LogOut, UserCircle, FileText, ChevronDown, AlertTriangle } from "lucide-react";
 import Container from "./Container";
 import Button from "../common/Button";
 import NotificationBell from "../notifications/NotificationBell";
@@ -28,6 +28,7 @@ export default function Header() {
   const userMenuItems = [
     { name: "Profile", href: "/profile", icon: UserCircle },
     { name: "My Requests", href: "/my-requests", icon: FileText },
+    { name: "Complaints", href: "/complaints", icon: AlertTriangle },
   ];
 
   // Close user menu when clicking outside
