@@ -13,8 +13,8 @@ services:
       - nginx_logs:/var/log/nginx
     depends_on:
       - backend
-      - frontend
       - customer
+      - engineer
     networks:
       - srms_network
     restart: unless-stopped
@@ -46,37 +46,6 @@ services:
       retries: 3
       start_period: 40s
 
-  queue:
-    build:
-      context: ./srms-backend
-      dockerfile: ../docker/backend/Dockerfile
-    container_name: srms-queue
-    command: php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
-    volumes:
-      - ./srms-backend/storage:/var/www/html/storage
-      - ./srms-backend/.env:/var/www/html/.env:ro
-    environment:
-      - DB_HOST=mysql
-      - DB_PORT=3306
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-    depends_on:
-      - mysql
-      - redis
-    networks:
-      - srms_network
-    restart: unless-stopped
-
-  frontend:
-    build:
-      context: ./srms-frontend
-      dockerfile: ../docker/frontend/Dockerfile
-      args:
-        - VITE_API_BASE_URL=${VITE_API_BASE_URL:-https://localhost/api}
-    container_name: srms-frontend
-    networks:
-      - srms_network
-
   customer:
     build:
       context: ./srms-customer
@@ -89,6 +58,21 @@ services:
       - NODE_ENV=production
     networks:
       - srms_network
+    restart: unless-stopped
+
+  engineer:
+    build:
+      context: ./srms-engineer
+      dockerfile: ../docker/engineer/Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://localhost/api}
+        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_ENGINEER_URL:-https://engineer.localhost}
+    container_name: srms-engineer
+    environment:
+      - NODE_ENV=production
+    networks:
+      - srms_network
+    restart: unless-stopped
 
   mysql:
     image: mysql:8.0

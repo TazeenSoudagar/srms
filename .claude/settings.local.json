@@ -66,7 +66,10 @@
       "Bash(./vendor/bin/pint app/Http/Controllers/Api/ServiceScheduleController.php app/Http/Controllers/Api/ServiceRequestController.php app/Http/Controllers/Api/NotificationController.php)",
       "Bash(php8.2 vendor/bin/pint app/Http/Controllers/Api/ServiceScheduleController.php app/Http/Controllers/Api/ServiceRequestController.php app/Http/Controllers/Api/NotificationController.php)",
       "Read(//usr/**)",
-      "Bash(ls /c/php*)"
+      "Bash(ls /c/php*)",
+      "Bash(docker-compose build:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(docker-compose ps:*)"
     ]
   }
 }
