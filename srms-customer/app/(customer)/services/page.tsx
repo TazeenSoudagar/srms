@@ -107,9 +107,9 @@ export default function ServicesPage() {
     <div className="min-h-screen bg-neutral-50">
       <Container>
         {/* Header */}
-        <div className="py-8 md:py-12">
-          <h1 className="mb-4">Our Services</h1>
-          <p className="text-lg text-neutral-600">
+        <div className="py-6">
+          <p className="text-lg font-semibold text-neutral-900 mb-1">Our Services</p>
+          <p className="text-sm text-neutral-500">
             Professional home services delivered with care and quality
           </p>
         </div>
@@ -129,13 +129,13 @@ export default function ServicesPage() {
           </div>
 
           {/* Category Filter */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex gap-1.5 flex-wrap bg-white border border-neutral-200 p-1 rounded-lg w-fit">
             <button
               onClick={() => handleCategoryChange("all")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                 selectedCategory === "all"
-                  ? "bg-primary-600 text-white"
-                  : "bg-white text-neutral-700 hover:bg-neutral-100"
+                  ? "bg-neutral-900 text-white"
+                  : "text-neutral-500 hover:text-neutral-800"
               }`}
             >
               All Services
@@ -144,10 +144,10 @@ export default function ServicesPage() {
               <button
                 key={category.id}
                 onClick={() => handleCategoryChange(category.id)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                   selectedCategory === category.id
-                    ? "bg-primary-600 text-white"
-                    : "bg-white text-neutral-700 hover:bg-neutral-100"
+                    ? "bg-neutral-900 text-white"
+                    : "text-neutral-500 hover:text-neutral-800"
                 }`}
               >
                 {category.name}
@@ -203,7 +203,7 @@ export default function ServicesPage() {
                     </div>
                   )}
                   <div className="p-5">
-                    <h4 className="mb-2 font-semibold">{service.name}</h4>
+                    <p className="text-sm font-semibold text-neutral-900 mb-1.5">{service.name}</p>
                     <p className="text-sm text-neutral-600 mb-4 line-clamp-2">
                       {service.description}
                     </p>
@@ -225,7 +225,7 @@ export default function ServicesPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-neutral-500">Starting at</p>
-                        <p className="text-xl font-bold text-primary-600">
+                        <p className="text-lg font-bold text-primary-600">
                           {formatPrice(service.basePrice)}
                         </p>
                       </div>

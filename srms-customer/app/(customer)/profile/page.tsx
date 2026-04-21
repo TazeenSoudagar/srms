@@ -131,11 +131,11 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-neutral-50">
       <Container>
-        <div className="py-8 md:py-12">
-          <div className="flex items-center justify-between mb-8">
+        <div className="py-6">
+          <div className="flex items-center justify-between mb-5">
             <div>
-              <h1 className="mb-2">My Profile</h1>
-              <p className="text-neutral-600">
+              <p className="text-lg font-semibold text-neutral-900 mb-0.5">My Profile</p>
+              <p className="text-sm text-neutral-500">
                 Manage your account information
               </p>
             </div>
@@ -160,9 +160,9 @@ export default function ProfilePage() {
                 <div className="h-24 w-24 rounded-full bg-primary-100 flex items-center justify-center mb-4">
                   <User className="h-12 w-12 text-primary-600" />
                 </div>
-                <h3 className="mb-1">
+                <p className="text-base font-semibold text-neutral-900 mb-1">
                   {profile.firstName} {profile.lastName}
-                </h3>
+                </p>
                 <p className="text-sm text-neutral-500 mb-4">{profile.email}</p>
 
                 {(profile as UserProfile & { createdAt?: string }).createdAt && (
@@ -179,7 +179,7 @@ export default function ProfilePage() {
             {/* Profile Details Card */}
             <Card className="md:col-span-2">
               <div className="p-6">
-                <h3 className="mb-6">Personal Information</h3>
+                <p className="text-sm font-semibold text-neutral-500 uppercase tracking-wider mb-4">Personal Information</p>
 
                 {editing ? (
                   <form onSubmit={handleSubmit} className="space-y-4">
