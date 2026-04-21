@@ -54,7 +54,19 @@
       "Bash(npm:*)",
       "Bash(node --version:*)",
       "mcp__plugin_playwright_playwright__browser_resize",
-      "mcp__plugin_playwright_playwright__browser_console_messages"
+      "mcp__plugin_playwright_playwright__browser_console_messages",
+      "mcp__plugin_playwright_playwright__browser_fill_form",
+      "mcp__plugin_playwright_playwright__browser_network_requests",
+      "Bash(/c/Users/TazeenSoudagar/.config/herd/bin/php83/php.exe artisan *)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(grep -rn \"filterTab\\\\|Tabs\\\\\\\\\\\\\\\\Tab\\\\|Tables\\\\\\\\\\\\\\\\Tabs\" d:/Learning/srms/srms-backend/vendor/filament/ --include=\"*.php\")",
+      "Bash(xargs grep *)",
+      "Bash(grep -rn \"ScheduleCreated\\\\|notify.*Schedule\\\\|Notifications\\\\\\\\\\\\\\\\Schedule\" d:/Learning/srms/srms-backend/app/ --include=\"*.php\")",
+      "Bash(./vendor/bin/pint app/Http/Controllers/Api/ServiceScheduleController.php app/Http/Controllers/Api/ServiceRequestController.php app/Http/Controllers/Api/NotificationController.php)",
+      "Bash(php8.2 vendor/bin/pint app/Http/Controllers/Api/ServiceScheduleController.php app/Http/Controllers/Api/ServiceRequestController.php app/Http/Controllers/Api/NotificationController.php)",
+      "Read(//usr/**)",
+      "Bash(ls /c/php*)"
     ]
   }
 }

@@ -37,7 +37,7 @@ class ServicesRelationManager extends RelationManager
                         TextInput::make('base_price')
                             ->label('Base Price')
                             ->numeric()
-                            ->prefix('$')
+                            ->prefix('₹')
                             ->minValue(0)
                             ->step(0.01),
                         TextInput::make('average_duration_minutes')
@@ -99,7 +99,7 @@ class ServicesRelationManager extends RelationManager
                     ->weight('bold'),
                 Tables\Columns\TextColumn::make('base_price')
                     ->label('Price')
-                    ->money('USD')
+                    ->money('INR')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('average_duration_minutes')
                     ->label('Duration')

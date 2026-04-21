@@ -38,6 +38,16 @@ class UpdateServiceScheduleRequest extends FormRequest
             'notes' => 'nullable|string|max:1000',
             'location' => 'nullable|string|max:255',
             'estimated_duration_minutes' => 'nullable|integer|min:15|max:480',
+            'actual_price' => [
+                'nullable',
+                'numeric',
+                'min:0',
+                'max:999999.99',
+                \Illuminate\Validation\Rule::when(
+                    fn ($input) => $input->status === 'completed',
+                    ['required', 'numeric', 'min:0']
+                ),
+            ],
         ];
     }
 
@@ -51,6 +61,7 @@ class UpdateServiceScheduleRequest extends FormRequest
             'status.in' => 'Invalid status value.',
             'estimated_duration_minutes.min' => 'Duration must be at least 15 minutes.',
             'estimated_duration_minutes.max' => 'Duration cannot exceed 8 hours.',
+            'actual_price.required' => 'An actual price is required before marking a schedule as completed.',
         ];
     }
 }

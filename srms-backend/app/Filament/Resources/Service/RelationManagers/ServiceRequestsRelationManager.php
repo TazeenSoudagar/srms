@@ -36,7 +36,7 @@ class ServiceRequestsRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('createdBy.name')
                     ->label('Customer')
                     ->searchable(['first_name', 'last_name']),
-                Tables\Columns\TextColumn::make('assignedTo.name')
+                Tables\Columns\TextColumn::make('schedules.0.engineer.name')
                     ->label('Engineer')
                     ->searchable(['first_name', 'last_name'])
                     ->placeholder('Unassigned'),

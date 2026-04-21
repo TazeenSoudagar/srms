@@ -7,6 +7,7 @@ namespace App\Http\Resources;
 use App\Services\HashidsService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class ServiceResource extends JsonResource
 {
@@ -19,16 +20,26 @@ class ServiceResource extends JsonResource
     {
         $hashidsService = app(HashidsService::class);
 
-        // Get the first media image URL (dynamic from media relationship)
+        // Get the first media image URL, always resolved via Storage to use APP_URL
         $imageUrl = null;
         if ($this->relationLoaded('media')) {
             $firstMedia = $this->media->first();
-            $imageUrl = $firstMedia?->url;
-        }
-
-        // Fallback to hardcoded icon if no media exists (for backward compatibility)
-        if (! $imageUrl && $this->icon) {
-            $imageUrl = "/images/services/{$this->icon}.jpg";
+            if ($firstMedia) {
+                if ($firstMedia->path) {
+                    // Use Storage to generate URL from path — always resolves via APP_URL
+                    $imageUrl = Storage::disk('public')->url($firstMedia->path);
+                } elseif ($firstMedia->url) {
+                    // Legacy records with no path: extract the relative path from the stored URL
+                    // and regenerate via Storage so it uses the correct APP_URL
+                    $storagePath = parse_url($firstMedia->url, PHP_URL_PATH);
+                    $relativePath = $storagePath
+                        ? ltrim(str_replace('/storage/', '', $storagePath), '/')
+                        : null;
+                    $imageUrl = $relativePath
+                        ? Storage::disk('public')->url($relativePath)
+                        : null;
+                }
+            }
         }
 
         return [

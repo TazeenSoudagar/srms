@@ -26,11 +26,17 @@ import { formatPrice } from "@/lib/utils/format";
 interface FormState {
   title: string;
   description: string;
+  preferredDate: string;
+  preferredTime: string;
+  location: string;
 }
 
 interface FormErrors {
   title?: string;
   description?: string;
+  preferredDate?: string;
+  preferredTime?: string;
+  location?: string;
 }
 
 function validate(values: FormState): FormErrors {
@@ -44,6 +50,20 @@ function validate(values: FormState): FormErrors {
     errors.description = "Description is required";
   } else if (values.description.trim().length < 20) {
     errors.description = "Description must be at least 20 characters";
+  }
+  // Validate date and time together if either is provided
+  if (values.preferredDate && !values.preferredTime) {
+    errors.preferredTime = "Please select a time";
+  }
+  if (values.preferredTime && !values.preferredDate) {
+    errors.preferredDate = "Please select a date";
+  }
+  // If both are provided, ensure the datetime is in the future
+  if (values.preferredDate && values.preferredTime) {
+    const selectedDateTime = new Date(`${values.preferredDate}T${values.preferredTime}`);
+    if (selectedDateTime <= new Date()) {
+      errors.preferredDate = "Please select a future date and time";
+    }
   }
   return errors;
 }
@@ -59,7 +79,13 @@ function NewRequestForm() {
   const [loadingService, setLoadingService] = useState(!!serviceId);
   const [serviceError, setServiceError] = useState<string | null>(null);
 
-  const [form, setForm] = useState<FormState>({ title: "", description: "" });
+  const [form, setForm] = useState<FormState>({
+    title: "",
+    description: "",
+    preferredDate: "",
+    preferredTime: "",
+    location: ""
+  });
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -122,11 +148,25 @@ function NewRequestForm() {
     try {
       setSubmitting(true);
       setSubmitError(null);
-      const res = await serviceRequestsApi.create({
+
+      // Build request payload
+      const payload: any = {
         service_id: serviceId || service!.id,
         title: form.title.trim(),
         description: form.description.trim(),
-      });
+      };
+
+      // Add preferred_time_slot if both date and time are provided
+      if (form.preferredDate && form.preferredTime) {
+        payload.preferred_time_slot = `${form.preferredDate} ${form.preferredTime}`;
+      }
+
+      // Add service_location if provided
+      if (form.location.trim()) {
+        payload.service_location = form.location.trim();
+      }
+
+      const res = await serviceRequestsApi.create(payload);
       setNewRequestId(res.data.id);
       setSubmitted(true);
     } catch (err: unknown) {
@@ -276,6 +316,87 @@ function NewRequestForm() {
                     </div>
                   </div>
 
+                  {/* Preferred Time Slot */}
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+                      Preferred Time Slot
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {/* Date */}
+                      <div>
+                        <input
+                          type="date"
+                          value={form.preferredDate}
+                          onChange={(e) => handleChange("preferredDate", e.target.value)}
+                          onBlur={() => handleBlur("preferredDate")}
+                          min={new Date().toISOString().split('T')[0]}
+                          className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-colors ${
+                            errors.preferredDate && touched.preferredDate
+                              ? "border-red-300 bg-red-50"
+                              : "border-neutral-200 bg-white hover:border-neutral-300"
+                          }`}
+                        />
+                        {errors.preferredDate && touched.preferredDate && (
+                          <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            {errors.preferredDate}
+                          </p>
+                        )}
+                      </div>
+                      {/* Time */}
+                      <div>
+                        <input
+                          type="time"
+                          value={form.preferredTime}
+                          onChange={(e) => handleChange("preferredTime", e.target.value)}
+                          onBlur={() => handleBlur("preferredTime")}
+                          className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-colors ${
+                            errors.preferredTime && touched.preferredTime
+                              ? "border-red-300 bg-red-50"
+                              : "border-neutral-200 bg-white hover:border-neutral-300"
+                          }`}
+                        />
+                        {errors.preferredTime && touched.preferredTime && (
+                          <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            {errors.preferredTime}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-xs text-neutral-500 mt-1.5">
+                      Optional: Select your preferred date and time for the service
+                    </p>
+                  </div>
+
+                  {/* Service Location */}
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+                      Service Location
+                    </label>
+                    <textarea
+                      value={form.location}
+                      onChange={(e) => handleChange("location", e.target.value)}
+                      onBlur={() => handleBlur("location")}
+                      placeholder="Enter the full address where you need the service"
+                      rows={3}
+                      className={`w-full px-4 py-3 rounded-xl border text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-colors ${
+                        errors.location && touched.location
+                          ? "border-red-300 bg-red-50"
+                          : "border-neutral-200 bg-white hover:border-neutral-300"
+                      }`}
+                    />
+                    {errors.location && touched.location && (
+                      <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {errors.location}
+                      </p>
+                    )}
+                    <p className="text-xs text-neutral-500 mt-1.5">
+                      Optional: Provide the complete address including landmarks if any
+                    </p>
+                  </div>
+
                   {/* No service selected warning */}
                   {!serviceId && !service && (
                     <div className="flex items-start gap-3 p-4 bg-amber-50 rounded-xl border border-amber-200">
@@ -371,18 +492,23 @@ function NewRequestForm() {
                         {service.description}
                       </p>
                     )}
-                    <div className="flex items-center justify-between">
-                      {service.basePrice && (
-                        <span className="text-primary-600 font-bold">
-                          {formatPrice(service.basePrice)}
-                        </span>
-                      )}
-                      {service.rating && (
-                        <div className="flex items-center gap-1 text-xs text-neutral-500">
-                          <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                          {service.rating}
-                        </div>
-                      )}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        {service.basePrice && (
+                          <span className="text-primary-600 font-bold">
+                            {formatPrice(service.basePrice)}
+                          </span>
+                        )}
+                        {service.rating && (
+                          <div className="flex items-center gap-1 text-xs text-neutral-500">
+                            <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                            {service.rating}
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs text-neutral-500 italic">
+                        Final price will be confirmed after assessment
+                      </p>
                     </div>
                   </div>
                 </Card>

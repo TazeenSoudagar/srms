@@ -21,7 +21,10 @@ import {
   Loader2,
   AlertCircle,
   ChevronRight,
+  Receipt,
+  Star,
 } from "lucide-react";
+import { getEcho } from "@/lib/echo";
 import { toast } from "sonner";
 import Container from "@/components/layout/Container";
 import Card from "@/components/common/Card";
@@ -29,11 +32,13 @@ import Button from "@/components/common/Button";
 import Badge from "@/components/common/Badge";
 import { serviceRequestsApi, commentsApi, mediaApi } from "@/lib/api/requests";
 import {
+  Rating,
   ServiceRequest,
   ServiceRequestStatus,
   Comment,
   Media,
 } from "@/lib/types/request";
+import RatingModal from "@/components/ratings/RatingModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatRelativeTime } from "@/lib/utils/format";
 
@@ -256,6 +261,78 @@ function MediaItem({
   );
 }
 
+// ─── Invoice Card ─────────────────────────────────────────────────────────────
+
+type ScheduleItem = NonNullable<ServiceRequest["schedules"]>[number];
+
+function InvoiceCard({
+  schedule,
+  onDownload,
+  downloading,
+}: {
+  schedule: ScheduleItem;
+  onDownload: () => void;
+  downloading: boolean;
+}) {
+  const fmt = (val?: string | null) =>
+    val
+      ? `₹${parseFloat(val).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      : "—";
+
+  return (
+    <Card>
+      <div className="p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Receipt className="h-4 w-4 text-green-600" />
+          <h3 className="text-sm font-semibold text-neutral-700">Invoice</h3>
+          {schedule.invoice?.invoice_number && (
+            <span className="ml-auto text-xs font-mono text-neutral-400">
+              {schedule.invoice.invoice_number}
+            </span>
+          )}
+        </div>
+
+        <div className="space-y-2 mb-4">
+          <div className="flex justify-between text-sm">
+            <span className="text-neutral-500">Service Charge</span>
+            <span className="font-medium text-neutral-800">{fmt(schedule.actual_price)}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-neutral-500">GST ({schedule.gst_rate ?? "18"}%)</span>
+            <span className="font-medium text-neutral-800">{fmt(schedule.gst_amount)}</span>
+          </div>
+          <div className="h-px bg-neutral-100" />
+          <div className="flex justify-between text-sm font-semibold">
+            <span className="text-neutral-800">Total Amount</span>
+            <span className="text-green-700 text-base">{fmt(schedule.total_amount)}</span>
+          </div>
+        </div>
+
+        {schedule.invoice?.has_pdf && (
+          <button
+            onClick={onDownload}
+            disabled={downloading}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+          >
+            {downloading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4" />
+            )}
+            {downloading ? "Downloading..." : "Download Invoice (PDF)"}
+          </button>
+        )}
+
+        {schedule.invoice?.sent_at && (
+          <p className="text-center text-xs text-neutral-400 mt-2">
+            Emailed on {new Date(schedule.invoice.sent_at).toLocaleDateString()}
+          </p>
+        )}
+      </div>
+    </Card>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function RequestDetailPage() {
@@ -282,6 +359,17 @@ export default function RequestDetailPage() {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelling, setCancelling] = useState(false);
 
+  // Invoice download state
+  const [downloadingInvoice, setDownloadingInvoice] = useState(false);
+
+  // Rating modal state
+  const [showRatingModal, setShowRatingModal] = useState(false);
+
+  // Service completion OTP state
+  const [showCompletionOtp, setShowCompletionOtp] = useState(false);
+  const [completionOtp, setCompletionOtp] = useState("");
+  const [verifyingCompletion, setVerifyingCompletion] = useState(false);
+
   const commentsEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -289,6 +377,28 @@ export default function RequestDetailPage() {
       fetchAll();
     }
   }, [requestId]);
+
+  // ── Real-time: reload when a new schedule is broadcast ──────────────────────
+  useEffect(() => {
+    if (!user?.id) return;
+
+    let mounted = true;
+    const channelName = `user.${user.id}`;
+
+    getEcho().then((echo) => {
+      if (!echo || !mounted) return;
+      const channel = echo.channel(channelName);
+      channel.listen('.schedule.created', () => { fetchAll(); });
+      channel.listen('.schedule.updated', () => { fetchAll(); });
+    });
+
+    return () => {
+      mounted = false;
+      getEcho().then((echo) => echo?.leaveChannel(channelName));
+    };
+    // fetchAll is stable for the lifetime of the component mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const fetchAll = async () => {
     try {
@@ -395,6 +505,57 @@ export default function RequestDetailPage() {
     } finally {
       setCancelling(false);
     }
+  };
+
+  const handleVerifyCompletion = async () => {
+    if (!completionOtp.trim() || completionOtp.length !== 6) {
+      toast.error("Please enter the 6-digit OTP.");
+      return;
+    }
+    setVerifyingCompletion(true);
+    try {
+      const res = await serviceRequestsApi.verifyCompletion(requestId, completionOtp);
+      setRequest(res.data);
+      setShowCompletionOtp(false);
+      setCompletionOtp("");
+      toast.success("Service completion confirmed! The request is now closed.");
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Invalid or expired OTP.";
+      toast.error(msg);
+    } finally {
+      setVerifyingCompletion(false);
+    }
+  };
+
+  const handleInvoiceDownload = async () => {
+    if (!request) return;
+    try {
+      setDownloadingInvoice(true);
+      const blob = await serviceRequestsApi.downloadInvoice(requestId);
+      const url = URL.createObjectURL(blob);
+      const completedSchedule = request.schedules?.find((s) => s.status === "completed");
+      const filename = completedSchedule?.invoice?.invoice_number
+        ? `${completedSchedule.invoice.invoice_number}.pdf`
+        : `invoice-${request.request_number}.pdf`;
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("Invoice downloaded successfully");
+    } catch (err) {
+      console.error("Error downloading invoice:", err);
+      toast.error("Failed to download invoice. Please try again.");
+    } finally {
+      setDownloadingInvoice(false);
+    }
+  };
+
+  const handleRatingSuccess = (rating: Rating) => {
+    setRequest((prev) => (prev ? { ...prev, rating } : prev));
+    setShowRatingModal(false);
   };
 
   // ── Loading ──
@@ -551,6 +712,124 @@ export default function RequestDetailPage() {
                 </div>
               </Card>
 
+              {/* ── Rating Section — only for closed requests ── */}
+              {request.status === "closed" && (
+                <>
+                  {request.rating ? (
+                    /* Already rated — read-only card */
+                    <Card>
+                      <div className="p-6">
+                        <div className="flex items-center gap-2 mb-4">
+                          <Star className="h-5 w-5 text-amber-400 fill-current" />
+                          <h2 className="text-base font-semibold text-neutral-800">
+                            Your Rating
+                          </h2>
+                          <button
+                            onClick={() => setShowRatingModal(true)}
+                            className="ml-auto text-xs text-neutral-400 hover:text-primary-600 underline transition-colors"
+                          >
+                            View details
+                          </button>
+                        </div>
+
+                        {/* Star display */}
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                className={`w-6 h-6 ${
+                                  star <= request.rating!.rating
+                                    ? "text-amber-400 fill-current"
+                                    : "text-neutral-300 fill-current"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-sm font-semibold text-neutral-700">
+                            {request.rating.rating}.0 / 5
+                          </span>
+                        </div>
+
+                        {request.rating.review && (
+                          <p className="text-sm text-neutral-600 leading-relaxed bg-neutral-50 rounded-lg p-3 border border-neutral-100">
+                            {request.rating.review}
+                          </p>
+                        )}
+
+                        {/* Sub-ratings summary */}
+                        {(request.rating.professionalism_rating != null ||
+                          request.rating.timeliness_rating != null ||
+                          request.rating.quality_rating != null) && (
+                          <div className="mt-3 pt-3 border-t border-neutral-100 flex flex-wrap gap-3">
+                            {request.rating.professionalism_rating != null && (
+                              <span className="text-xs text-neutral-500">
+                                Professionalism:{" "}
+                                <span className="font-semibold text-neutral-700">
+                                  {request.rating.professionalism_rating}/5
+                                </span>
+                              </span>
+                            )}
+                            {request.rating.timeliness_rating != null && (
+                              <span className="text-xs text-neutral-500">
+                                Timeliness:{" "}
+                                <span className="font-semibold text-neutral-700">
+                                  {request.rating.timeliness_rating}/5
+                                </span>
+                              </span>
+                            )}
+                            {request.rating.quality_rating != null && (
+                              <span className="text-xs text-neutral-500">
+                                Quality:{" "}
+                                <span className="font-semibold text-neutral-700">
+                                  {request.rating.quality_rating}/5
+                                </span>
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </Card>
+                  ) : (
+                    /* Not yet rated — prompt card */
+                    <Card>
+                      <div className="p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                        <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center">
+                          <Star className="h-6 w-6 text-amber-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h2 className="text-base font-semibold text-neutral-800 mb-0.5">
+                            How was your experience?
+                          </h2>
+                          <p className="text-sm text-neutral-500">
+                            Your feedback helps us improve. Rate the service you received.
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowRatingModal(true)}
+                          className="flex-shrink-0 border-teal-400 text-teal-600 hover:bg-teal-50"
+                        >
+                          <Star className="h-4 w-4 mr-1.5" />
+                          Leave a Review
+                        </Button>
+                      </div>
+                    </Card>
+                  )}
+
+                  {/* Rating Modal */}
+                  <RatingModal
+                    isOpen={showRatingModal}
+                    onClose={() => setShowRatingModal(false)}
+                    requestId={requestId}
+                    requestTitle={request.title}
+                    existingRating={request.rating}
+                    onSuccess={handleRatingSuccess}
+                  />
+                </>
+              )}
+
               {/* Comments Section */}
               <Card>
                 <div className="p-6">
@@ -698,44 +977,140 @@ export default function RequestDetailPage() {
             {/* ── Right Column (sidebar) ── */}
             <div className="space-y-6">
 
-              {/* Assigned Engineer */}
-              {request.assigned_to ? (
-                <Card>
-                  <div className="p-5">
-                    <h3 className="text-sm font-semibold text-neutral-700 mb-3">
-                      Assigned Engineer
+              {/* Service Schedule */}
+              <Card>
+                <div className="p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Calendar className="h-4 w-4 text-primary-500" />
+                    <h3 className="text-sm font-semibold text-neutral-700">
+                      Service Schedule
                     </h3>
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-accent-400 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                        {request.assigned_to.first_name?.[0]?.toUpperCase() || "?"}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-neutral-900">
-                          {request.assigned_to.first_name}{" "}
-                          {request.assigned_to.last_name}
-                        </p>
-                        {request.assigned_to.email && (
-                          <p className="text-xs text-neutral-500">
-                            {request.assigned_to.email}
-                          </p>
-                        )}
-                      </div>
-                    </div>
                   </div>
-                </Card>
-              ) : (
-                <Card>
-                  <div className="p-5">
-                    <h3 className="text-sm font-semibold text-neutral-700 mb-2">
-                      Assigned Engineer
-                    </h3>
+
+                  {request.schedules && request.schedules.length > 0 ? (
+                    <div className="space-y-4">
+                      {request.schedules.map((schedule, idx) => {
+                        const scheduleStatusConfig: Record<
+                          string,
+                          { label: string; className: string }
+                        > = {
+                          pending: {
+                            label: "Pending",
+                            className: "bg-yellow-100 text-yellow-700",
+                          },
+                          confirmed: {
+                            label: "Confirmed",
+                            className: "bg-blue-100 text-blue-700",
+                          },
+                          in_progress: {
+                            label: "In Progress",
+                            className: "bg-orange-100 text-orange-700",
+                          },
+                          completed: {
+                            label: "Completed",
+                            className: "bg-green-100 text-green-700",
+                          },
+                          cancelled: {
+                            label: "Cancelled",
+                            className: "bg-red-100 text-red-700",
+                          },
+                        };
+                        const statusInfo = scheduleStatusConfig[schedule.status] ?? {
+                          label: schedule.status,
+                          className: "bg-neutral-100 text-neutral-600",
+                        };
+
+                        return (
+                          <div key={schedule.id}>
+                            {idx > 0 && (
+                              <div className="border-t border-neutral-100 mb-4" />
+                            )}
+                            {/* Engineer row */}
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-accent-400 flex items-center justify-center text-white font-bold flex-shrink-0">
+                                {schedule.engineer.first_name?.[0]?.toUpperCase() ?? "?"}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-sm font-semibold text-neutral-900 truncate">
+                                  {schedule.engineer.first_name}{" "}
+                                  {schedule.engineer.last_name}
+                                </p>
+                                {schedule.engineer.email && (
+                                  <p className="text-xs text-neutral-500 truncate">
+                                    {schedule.engineer.email}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Date/time row */}
+                            <div className="flex items-start gap-2 mb-2">
+                              <Clock className="h-3.5 w-3.5 text-neutral-400 mt-0.5 flex-shrink-0" />
+                              <p className="text-xs text-neutral-600">
+                                {new Date(schedule.scheduled_at).toLocaleString()}
+                              </p>
+                            </div>
+
+                            {/* Status badge */}
+                            <span
+                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusInfo.className}`}
+                            >
+                              {statusInfo.label}
+                            </span>
+
+                            {/* Pricing summary — shown when actual_price is set */}
+                            {schedule.actual_price != null && (
+                              <div className="mt-3 pt-3 border-t border-neutral-100 space-y-1">
+                                <div className="flex justify-between text-xs">
+                                  <span className="text-neutral-500">Service Charge</span>
+                                  <span className="text-neutral-700">
+                                    ₹{parseFloat(schedule.actual_price).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                                  </span>
+                                </div>
+                                {schedule.gst_amount != null && (
+                                  <div className="flex justify-between text-xs">
+                                    <span className="text-neutral-500">GST ({schedule.gst_rate ?? "18"}%)</span>
+                                    <span className="text-neutral-700">
+                                      ₹{parseFloat(schedule.gst_amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                                    </span>
+                                  </div>
+                                )}
+                                {schedule.total_amount != null && (
+                                  <div className="flex justify-between text-xs font-semibold">
+                                    <span className="text-neutral-800">Total</span>
+                                    <span className="text-green-700">
+                                      ₹{parseFloat(schedule.total_amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
                     <div className="flex items-center gap-3 text-neutral-400">
-                      <User className="h-8 w-8" />
-                      <p className="text-sm">Not yet assigned</p>
+                      <Calendar className="h-8 w-8 opacity-40" />
+                      <p className="text-sm">Not yet scheduled</p>
                     </div>
-                  </div>
-                </Card>
-              )}
+                  )}
+                </div>
+              </Card>
+
+              {/* Invoice Card — visible when a completed schedule with pricing exists */}
+              {(() => {
+                const completedSchedule = request.schedules?.find(
+                  (s) => s.status === "completed" && s.actual_price != null
+                );
+                return completedSchedule ? (
+                  <InvoiceCard
+                    schedule={completedSchedule}
+                    onDownload={handleInvoiceDownload}
+                    downloading={downloadingInvoice}
+                  />
+                ) : null;
+              })()}
 
               {/* Quick Stats */}
               <Card>
@@ -787,6 +1162,57 @@ export default function RequestDetailPage() {
               </Card>
 
               {/* Actions */}
+              {/* Service Completion OTP — shown when engineer has triggered completion */}
+              {request.status === "in_progress" && (
+                <Card>
+                  <div className="p-5">
+                    <h3 className="text-sm font-semibold text-neutral-700 mb-1">
+                      Confirm Service Completion
+                    </h3>
+                    <p className="text-xs text-neutral-500 mb-3">
+                      If the engineer has completed the service, enter the 6-digit OTP sent to your email to confirm and close this request.
+                    </p>
+                    {!showCompletionOtp ? (
+                      <button
+                        onClick={() => setShowCompletionOtp(true)}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-green-200 text-green-700 text-sm font-medium hover:bg-green-50 transition-colors"
+                      >
+                        <CheckCircle2 className="h-4 w-4" />
+                        Enter Completion OTP
+                      </button>
+                    ) : (
+                      <div className="space-y-3">
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={6}
+                          value={completionOtp}
+                          onChange={(e) => setCompletionOtp(e.target.value.replace(/\D/g, ""))}
+                          placeholder="Enter 6-digit OTP"
+                          className="w-full px-4 py-2.5 rounded-lg border border-neutral-300 text-center text-lg tracking-widest font-mono focus:outline-none focus:ring-2 focus:ring-green-500"
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => { setShowCompletionOtp(false); setCompletionOtp(""); }}
+                            className="flex-1 px-3 py-2 rounded-lg border border-neutral-200 text-sm text-neutral-600 hover:bg-neutral-50"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={handleVerifyCompletion}
+                            disabled={verifyingCompletion || completionOtp.length !== 6}
+                            className="flex-1 px-3 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-1"
+                          >
+                            {verifyingCompletion ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+                            Confirm
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              )}
+
               {canCancel && (
                 <Card>
                   <div className="p-5">

@@ -27,14 +27,6 @@ class CategoriesTable
                     ->sortable()
                     ->color('gray')
                     ->copyable(),
-                TextColumn::make('icon')
-                    ->placeholder('—')
-                    ->badge()
-                    ->color('info'),
-                TextColumn::make('display_order')
-                    ->label('Order')
-                    ->sortable()
-                    ->alignCenter(),
                 TextColumn::make('services_count')
                     ->counts('services')
                     ->label('Services')

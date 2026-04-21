@@ -55,16 +55,16 @@ class ActivityLogsTable
                     ->color('primary')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('loggable_id')
-                    ->label('ID')
-                    ->sortable()
-                    ->alignCenter(),
-                TextColumn::make('details')
-                    ->label('Details Preview')
-                    ->formatStateUsing(fn ($state) => is_array($state) ? json_encode($state) : '—')
-                    ->limit(50)
-                    ->toggleable()
-                    ->wrap(),
+                // TextColumn::make('loggable_id')
+                //     ->label('ID')
+                //     ->sortable()
+                //     ->alignCenter(),
+                // TextColumn::make('details')
+                //     ->label('Details Preview')
+                //     ->formatStateUsing(fn ($state) => is_array($state) ? json_encode($state) : '—')
+                //     ->limit(50)
+                //     ->toggleable()
+                //     ->wrap(),
                 TextColumn::make('created_at')
                     ->label('Timestamp')
                     ->dateTime('M j, Y g:i A')

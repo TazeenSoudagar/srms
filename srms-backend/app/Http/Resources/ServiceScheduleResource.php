@@ -43,6 +43,18 @@ class ServiceScheduleResource extends JsonResource
             'estimated_end_time' => $this->scheduled_at->copy()
                 ->addMinutes($this->estimated_duration_minutes ?? 60)
                 ->toIso8601String(),
+            'actual_price' => $this->actual_price,
+            'gst_rate' => $this->gst_rate,
+            'gst_amount' => $this->gst_amount,
+            'total_amount' => $this->total_amount,
+            'invoice' => $this->when(
+                $this->relationLoaded('invoice') && $this->invoice !== null,
+                fn () => [
+                    'invoice_number' => $this->invoice->invoice_number,
+                    'sent_at'        => $this->invoice->sent_at?->toISOString(),
+                    'has_pdf'        => $this->invoice->pdf_path !== null,
+                ]
+            ),
             'is_editable' => $this->isEditable(),
             'is_cancellable' => $this->isCancellable(),
             'created_at' => $this->created_at->toIso8601String(),

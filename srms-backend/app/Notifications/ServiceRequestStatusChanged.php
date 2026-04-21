@@ -24,8 +24,9 @@ class ServiceRequestStatusChanged extends Notification
     public function toArray($notifiable): array
     {
         return [
+            'format' => 'filament',
             'title' => 'Service Request Status Changed',
-            'message' => "Service request #{$this->serviceRequest->request_number} status changed from {$this->oldStatus} to {$this->newStatus}.",
+            'body' => "Service request #{$this->serviceRequest->request_number} status changed from {$this->oldStatus} to {$this->newStatus}.",
             'service_request_id' => $this->serviceRequest->id,
             'request_number' => $this->serviceRequest->request_number,
             'old_status' => $this->oldStatus,

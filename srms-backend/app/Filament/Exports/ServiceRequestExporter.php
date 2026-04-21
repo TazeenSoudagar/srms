@@ -22,7 +22,7 @@ class ServiceRequestExporter extends Exporter
                 ->label('Service'),
             ExportColumn::make('createdBy.name')
                 ->label('Customer'),
-            ExportColumn::make('assignedTo.name')
+            ExportColumn::make('schedules.0.engineer.name')
                 ->label('Assigned Engineer'),
             ExportColumn::make('status'),
             ExportColumn::make('priority'),

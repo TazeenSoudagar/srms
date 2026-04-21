@@ -18,13 +18,31 @@ class ServicesTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->with('media'))
             ->columns([
                 ImageColumn::make('service_image')
                     ->label('Image')
                     ->disk('public')
                     ->size(50)
                     ->circular()
-                    ->defaultImageUrl('/images/placeholder-service.png'),
+                    ->getStateUsing(function ($record): ?string {
+                        $media = $record->media->first();
+                        if (! $media) {
+                            return null;
+                        }
+                        if ($media->path) {
+                            return $media->path;
+                        }
+                        // Fallback: extract relative path from stored URL for legacy records
+                        $parsed = parse_url($media->url, PHP_URL_PATH);
+
+                        return $parsed
+                            ? ltrim(str_replace('/storage/', '', $parsed), '/')
+                            : null;
+                    })
+                    ->defaultImageUrl(
+                        'https://ui-avatars.com/api/?name=Service&color=7F9CF5&background=EBF4FF&size=50'
+                    ),
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable()
@@ -37,7 +55,7 @@ class ServicesTable
                     ->searchable(),
                 TextColumn::make('base_price')
                     ->label('Price')
-                    ->money('USD')
+                    ->money('INR')
                     ->sortable(),
                 TextColumn::make('average_duration_minutes')
                     ->label('Duration')

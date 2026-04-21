@@ -27,9 +27,18 @@ class ServiceController extends Controller
 
         $query = Service::with(['category', 'media'])->where('is_active', true);
 
-        // Filter by category
+        // Filter by category (supports both ID and slug)
         if ($request->has('categoryId')) {
-            $query->where('category_id', $request->categoryId);
+            $categoryId = $request->categoryId;
+
+            // If it's numeric, filter by ID; otherwise filter by slug
+            if (is_numeric($categoryId)) {
+                $query->where('category_id', $categoryId);
+            } else {
+                $query->whereHas('category', function ($q) use ($categoryId) {
+                    $q->where('slug', $categoryId);
+                });
+            }
         }
 
         // Filter by price range

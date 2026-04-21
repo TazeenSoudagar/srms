@@ -71,7 +71,7 @@ class UserInfolist
                             ->placeholder('No bio provided'),
                         TextEntry::make('hourly_rate')
                             ->label('Hourly Rate')
-                            ->money('USD')
+                            ->money('INR')
                             ->placeholder('—'),
                         TextEntry::make('years_of_experience')
                             ->label('Experience')

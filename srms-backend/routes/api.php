@@ -76,6 +76,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('service-requests/{serviceRequest}/status', [\App\Http\Controllers\Api\ServiceRequestController::class, 'updateStatus']);
     Route::post('service-requests/{serviceRequest}/close', [\App\Http\Controllers\Api\ServiceRequestController::class, 'close']);
     Route::post('service-requests/{serviceRequest}/cancel', [\App\Http\Controllers\Api\ServiceRequestController::class, 'cancel']);
+    Route::post('service-requests/{serviceRequest}/request-completion', [\App\Http\Controllers\Api\ServiceCompletionController::class, 'requestCompletion']);
+    Route::post('service-requests/{serviceRequest}/verify-completion', [\App\Http\Controllers\Api\ServiceCompletionController::class, 'verifyCompletion']);
 
     // Comments (nested under service requests)
     Route::get('service-requests/{serviceRequest}/comments', [\App\Http\Controllers\Api\CommentController::class, 'index']);
@@ -90,9 +92,26 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('service-requests/{serviceRequest}/media/{media}', [\App\Http\Controllers\Api\MediaController::class, 'show']);
     Route::delete('service-requests/{serviceRequest}/media/{media}', [\App\Http\Controllers\Api\MediaController::class, 'destroy']);
 
+    // Ratings (nested under service requests)
+    Route::post('service-requests/{serviceRequest}/rating', [
+        \App\Http\Controllers\Api\RatingController::class, 'store',
+    ]);
+    Route::get('service-requests/{serviceRequest}/rating', [
+        \App\Http\Controllers\Api\RatingController::class, 'show',
+    ]);
+
+    // Notifications
+    Route::get('notifications/unread-count', [\App\Http\Controllers\Api\NotificationController::class, 'unreadCount']);
+    Route::post('notifications/read-all', [\App\Http\Controllers\Api\NotificationController::class, 'markAllAsRead']);
+    Route::get('notifications', [\App\Http\Controllers\Api\NotificationController::class, 'index']);
+    Route::post('notifications/{id}/read', [\App\Http\Controllers\Api\NotificationController::class, 'markAsRead']);
+
     // Activity Logs (admin only)
     Route::get('activity-logs', [\App\Http\Controllers\Api\ActivityLogController::class, 'index']);
     Route::get('activity-logs/{activityLog}', [\App\Http\Controllers\Api\ActivityLogController::class, 'show']);
+
+    // Invoice download
+    Route::get('service-requests/{serviceRequest}/invoice', [\App\Http\Controllers\Api\InvoiceController::class, 'download']);
 
     // Service Schedules
     Route::prefix('schedules')->group(function () {

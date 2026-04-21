@@ -6,6 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Menu, X, User, Phone, Home, LogOut, UserCircle, FileText, ChevronDown } from "lucide-react";
 import Container from "./Container";
 import Button from "../common/Button";
+import NotificationBell from "../notifications/NotificationBell";
 import { cn } from "@/lib/utils/cn";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -55,17 +56,17 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-neutral-200 shadow-sm">
       <Container>
-        <div className="flex items-center justify-between h-16 md:h-20">
-          {/* Logo - TODO: Add dark mode support with logo-dark.png */}
-          <Link href="/" className="flex items-center gap-3 group">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 shrink-0 group">
             <img
               src="/logo-1.png"
               alt="SRMS Logo"
-              className="h-14 w-auto"
+              className="h-9 w-auto md:h-11"
             />
-            <div className="hidden sm:block">
-              <span className="text-xl font-bold text-neutral-900">SRMS</span>
-              <p className="text-xs text-neutral-600 -mt-1">Home Services</p>
+            <div className="hidden sm:block leading-tight">
+              <span className="text-lg font-bold text-neutral-900 block">SRMS</span>
+              <p className="text-xs text-neutral-500">Home Services</p>
             </div>
           </Link>
 
@@ -99,6 +100,7 @@ export default function Header() {
                     Book Service
                   </Button>
                 </Link>
+                <NotificationBell />
                 {/* User Menu */}
                 <div className="relative" ref={userMenuRef}>
                   <button
