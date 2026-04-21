@@ -46,9 +46,19 @@ class ServiceRequestPolicy
     }
 
     /**
+     * Check if engineer is assigned to this request via a schedule.
+     */
+    private function isAssignedEngineer(User $user, ServiceRequest $serviceRequest): bool
+    {
+        return $serviceRequest->schedules()
+            ->where('engineer_id', $user->id)
+            ->exists();
+    }
+
+    /**
      * Determine whether the user can view the model.
      * Admin: all requests
-     * Support Engineer: assigned requests
+     * Support Engineer: assigned requests (via schedules)
      * Client: own requests
      */
     public function view(User $user, ServiceRequest $serviceRequest): bool
@@ -58,7 +68,7 @@ class ServiceRequestPolicy
         }
 
         if ($this->isSupportEngineer($user)) {
-            return $serviceRequest->assigned_to === $user->id;
+            return $this->isAssignedEngineer($user, $serviceRequest);
         }
 
         if ($this->isClient($user)) {
@@ -90,7 +100,7 @@ class ServiceRequestPolicy
         }
 
         if ($this->isSupportEngineer($user)) {
-            return $serviceRequest->assigned_to === $user->id;
+            return $this->isAssignedEngineer($user, $serviceRequest);
         }
 
         return false;
@@ -148,7 +158,7 @@ class ServiceRequestPolicy
         }
 
         if ($this->isSupportEngineer($user)) {
-            return $serviceRequest->assigned_to === $user->id;
+            return $this->isAssignedEngineer($user, $serviceRequest);
         }
 
         return false;

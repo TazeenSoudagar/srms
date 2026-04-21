@@ -92,7 +92,7 @@ export default function SchedulesPage() {
                   </div>
                   {s.total_amount && (
                     <p className="text-sm text-neutral-600">
-                      Total: <span className="font-semibold">₹{s.total_amount.toFixed(2)}</span>
+                      Total: <span className="font-semibold">₹{Number(s.total_amount).toFixed(2)}</span>
                     </p>
                   )}
                 </div>

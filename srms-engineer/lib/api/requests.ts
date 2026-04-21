@@ -1,10 +1,13 @@
 import apiClient from "./client";
-import type { ServiceRequest, PaginatedResponse, Comment } from "@/lib/types";
+import type { ServiceRequest, PaginatedResponse, Comment, Rating } from "@/lib/types";
 
 export const getAssignedRequests = (params?: {
   status?: string;
   page?: number;
   per_page?: number;
+  sort_by?: string;
+  sort_order?: "asc" | "desc";
+  search?: string;
 }) =>
   apiClient.get<PaginatedResponse<ServiceRequest>>("/service-requests", {
     params,
@@ -24,3 +27,9 @@ export const getComments = (id: string) =>
 
 export const addComment = (id: string, body: string) =>
   apiClient.post<{ data: Comment }>(`/service-requests/${id}/comments`, { body });
+
+export const verifyCompletion = (id: string, otp: string) =>
+  apiClient.post<{ message: string }>(`/service-requests/${id}/verify-completion`, { otp });
+
+export const getRating = (id: string) =>
+  apiClient.get<{ data: Rating }>(`/service-requests/${id}/rating`);

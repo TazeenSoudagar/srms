@@ -29,7 +29,7 @@ export default function EngineerLayout({ children }: { children: React.ReactNode
     <div className="flex h-screen overflow-hidden bg-neutral-50">
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
-        <div className="p-6 max-w-6xl mx-auto">{children}</div>
+        <div className="pt-14 lg:pt-0 p-4 sm:p-6 max-w-6xl mx-auto">{children}</div>
       </main>
     </div>
   );

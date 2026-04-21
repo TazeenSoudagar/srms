@@ -23,9 +23,12 @@ class UserExporter extends Exporter
                 ->label('Role'),
             ExportColumn::make('is_active')
                 ->label('Active'),
-            ExportColumn::make('availability_status'),
-            ExportColumn::make('hourly_rate'),
-            ExportColumn::make('years_of_experience'),
+            ExportColumn::make('engineerProfile.availability_status')
+                ->label('Availability Status'),
+            ExportColumn::make('engineerProfile.hourly_rate')
+                ->label('Hourly Rate'),
+            ExportColumn::make('engineerProfile.years_of_experience')
+                ->label('Years of Experience'),
             ExportColumn::make('city'),
             ExportColumn::make('state'),
             ExportColumn::make('country'),

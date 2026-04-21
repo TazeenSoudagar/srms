@@ -26,6 +26,18 @@ export interface User {
 export type ServiceRequestStatus = "open" | "in_progress" | "closed" | "cancelled";
 export type ServiceRequestPriority = "low" | "medium" | "high";
 
+export interface Rating {
+  id: string;
+  rating: number;
+  review?: string | null;
+  professionalism_rating?: number | null;
+  timeliness_rating?: number | null;
+  quality_rating?: number | null;
+  is_anonymous: boolean;
+  created_at: string;
+  reviewer: { name: string; initials: string };
+}
+
 export interface ServiceRequest {
   id: string;
   request_number: string;
@@ -38,6 +50,7 @@ export interface ServiceRequest {
   service?: { id: string; name: string };
   schedules?: Schedule[];
   comments?: Comment[];
+  rating?: Rating | null;
   created_at: string;
   updated_at: string;
   closed_at?: string | null;
@@ -77,14 +90,6 @@ export interface Notification {
   created_at: string;
 }
 
-export interface Rating {
-  id: string;
-  rating: number;
-  review?: string;
-  service_request_id: string;
-  service_request?: ServiceRequest;
-  created_at: string;
-}
 
 export interface PaginatedResponse<T> {
   data: T[];

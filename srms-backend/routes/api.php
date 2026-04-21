@@ -113,6 +113,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // Invoice download
     Route::get('service-requests/{serviceRequest}/invoice', [\App\Http\Controllers\Api\InvoiceController::class, 'download']);
 
+    // Payment proof
+    Route::post('service-requests/{serviceRequest}/payment-proof', [\App\Http\Controllers\Api\PaymentController::class, 'uploadProof']);
+    Route::get('service-requests/{serviceRequest}/payment-proof', [\App\Http\Controllers\Api\PaymentController::class, 'downloadProof']);
+    Route::post('service-requests/{serviceRequest}/payment-verify', [\App\Http\Controllers\Api\PaymentController::class, 'verifyPayment']);
+
     // Service Schedules
     Route::prefix('schedules')->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\ServiceScheduleController::class, 'index']);

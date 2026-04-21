@@ -17,7 +17,7 @@ class UsersTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn($query) => $query->with('role'))
+            ->modifyQueryUsing(fn($query) => $query->with(['role', 'engineerProfile']))
             ->columns([
                 ImageColumn::make('avatar.url')
                     ->label('Avatar')
@@ -51,7 +51,7 @@ class UsersTable
                         default            => 'gray',
                     })
                     ->sortable(),
-                TextColumn::make('availability_status')
+                TextColumn::make('engineerProfile.availability_status')
                     ->label('Availability')
                     ->badge()
                     ->color(fn(?string $state): string => match ($state) {
@@ -63,12 +63,12 @@ class UsersTable
                     ->formatStateUsing(fn(?string $state) => $state ? ucfirst($state) : '—')
                     ->visible(fn($record) => $record?->role?->name === 'Support Engineer')
                     ->toggleable(),
-                TextColumn::make('hourly_rate')
+                TextColumn::make('engineerProfile.hourly_rate')
                     ->label('Rate')
                     ->money('INR')
                     ->visible(fn($record) => $record?->role?->name === 'Support Engineer')
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('years_of_experience')
+                TextColumn::make('engineerProfile.years_of_experience')
                     ->label('Experience')
                     ->formatStateUsing(fn($state) => $state ? "{$state} yrs" : '—')
                     ->visible(fn($record) => $record?->role?->name === 'Support Engineer')
@@ -104,7 +104,10 @@ class UsersTable
                         'busy'      => 'Busy',
                         'offline'   => 'Offline',
                     ])
-                    ->multiple(),
+                    ->multiple()
+                    ->query(fn ($query, array $data) => blank($data['values'])
+                        ? $query
+                        : $query->whereHas('engineerProfile', fn ($q) => $q->whereIn('availability_status', $data['values']))),
             ])
             ->recordActions([
                 ViewAction::make(),
