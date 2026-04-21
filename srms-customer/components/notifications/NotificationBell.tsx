@@ -149,6 +149,21 @@ export default function NotificationBell() {
     }
   };
 
+  // ── Clear all notifications ──────────────────────────────────────────────────
+
+  const handleClearAll = async () => {
+    const previous = notifications;
+    const previousCount = unreadCount;
+    setNotifications([]);
+    setUnreadCount(0);
+    try {
+      await notificationsApi.clearAll();
+    } catch {
+      setNotifications(previous);
+      setUnreadCount(previousCount);
+    }
+  };
+
   // ── Mark all as read ─────────────────────────────────────────────────────────
 
   const handleMarkAllAsRead = async () => {
@@ -197,15 +212,26 @@ export default function NotificationBell() {
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-100">
             <h3 className="text-sm font-semibold text-neutral-900">Notifications</h3>
-            {unreadCount > 0 && (
-              <button
-                type="button"
-                onClick={handleMarkAllAsRead}
-                className="text-xs text-primary-600 hover:text-primary-700 font-medium transition-colors"
-              >
-                Mark all as read
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              {unreadCount > 0 && (
+                <button
+                  type="button"
+                  onClick={handleMarkAllAsRead}
+                  className="text-xs text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                >
+                  Mark all read
+                </button>
+              )}
+              {notifications.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleClearAll}
+                  className="text-xs text-neutral-400 hover:text-red-500 font-medium transition-colors"
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Body */}
@@ -231,9 +257,12 @@ export default function NotificationBell() {
                           if (isUnread) {
                             handleMarkAsRead(notification.id);
                           }
+                          const complaintId = notification.data?.complaint_id as string | undefined;
                           const requestId = notification.data?.service_request_id as string | undefined;
-                          if (requestId) {
-                            setIsOpen(false);
+                          setIsOpen(false);
+                          if (complaintId) {
+                            router.push(`/complaints/${complaintId}`);
+                          } else if (requestId) {
                             router.push(`/my-requests/${requestId}`);
                           }
                         }}

@@ -103,6 +103,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Notifications
     Route::get('notifications/unread-count', [\App\Http\Controllers\Api\NotificationController::class, 'unreadCount']);
     Route::post('notifications/read-all', [\App\Http\Controllers\Api\NotificationController::class, 'markAllAsRead']);
+    Route::delete('notifications', [\App\Http\Controllers\Api\NotificationController::class, 'clearAll']);
     Route::get('notifications', [\App\Http\Controllers\Api\NotificationController::class, 'index']);
     Route::post('notifications/{id}/read', [\App\Http\Controllers\Api\NotificationController::class, 'markAsRead']);
 
@@ -117,6 +118,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('service-requests/{serviceRequest}/payment-proof', [\App\Http\Controllers\Api\PaymentController::class, 'uploadProof']);
     Route::get('service-requests/{serviceRequest}/payment-proof', [\App\Http\Controllers\Api\PaymentController::class, 'downloadProof']);
     Route::post('service-requests/{serviceRequest}/payment-verify', [\App\Http\Controllers\Api\PaymentController::class, 'verifyPayment']);
+
+    // Complaints
+    Route::get('complaints', [\App\Http\Controllers\Api\ComplaintController::class, 'index']);
+    Route::post('complaints', [\App\Http\Controllers\Api\ComplaintController::class, 'store']);
+    Route::get('complaints/{complaint}', [\App\Http\Controllers\Api\ComplaintController::class, 'show']);
+    Route::put('complaints/{complaint}', [\App\Http\Controllers\Api\ComplaintController::class, 'update']);
+    Route::post('complaints/{complaint}/admin-close', [\App\Http\Controllers\Api\ComplaintController::class, 'adminClose']);
+    Route::post('complaints/{complaint}/request-resolution', [\App\Http\Controllers\Api\ComplaintController::class, 'requestResolution']);
+    Route::post('complaints/{complaint}/verify-resolution', [\App\Http\Controllers\Api\ComplaintController::class, 'verifyResolution']);
 
     // Service Schedules
     Route::prefix('schedules')->group(function () {

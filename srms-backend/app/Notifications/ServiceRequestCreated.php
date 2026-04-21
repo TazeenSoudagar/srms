@@ -5,6 +5,7 @@ namespace App\Notifications;
 use App\Models\ServiceRequest;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
+use Vinkla\Hashids\Facades\Hashids;
 
 class ServiceRequestCreated extends Notification
 {
@@ -25,7 +26,7 @@ class ServiceRequestCreated extends Notification
             'format' => 'filament',
             'title' => 'New Service Request Created',
             'body' => "Service request #{$this->serviceRequest->request_number} has been created.",
-            'service_request_id' => $this->serviceRequest->id,
+            'service_request_id' => Hashids::encode($this->serviceRequest->id),
             'request_number' => $this->serviceRequest->request_number,
             'icon' => 'heroicon-o-clipboard-document-list',
             'color' => 'success',
