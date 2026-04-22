@@ -61,7 +61,6 @@ export default function SchedulesPage() {
     id: s.id,
     title: customerName(s),
     start: s.scheduled_at,
-    end: s.estimated_end_time ?? s.scheduled_at,
     backgroundColor: STATUS_COLORS[s.status] ?? "#737373",
     borderColor: STATUS_COLORS[s.status] ?? "#737373",
     extendedProps: {
@@ -123,6 +122,7 @@ export default function SchedulesPage() {
             eventContent={(info) => <EventContent info={info} />}
             height={640}
             nowIndicator
+            eventDisplay="block"
             dayMaxEvents={3}
             eventTimeFormat={{
               hour: "2-digit",
