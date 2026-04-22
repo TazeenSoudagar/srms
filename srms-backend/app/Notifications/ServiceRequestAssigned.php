@@ -5,6 +5,7 @@ namespace App\Notifications;
 use App\Models\ServiceRequest;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
+use Vinkla\Hashids\Facades\Hashids;
 
 class ServiceRequestAssigned extends Notification
 {
@@ -25,7 +26,7 @@ class ServiceRequestAssigned extends Notification
             'format' => 'filament',
             'title' => 'Service Request Assigned',
             'body' => "You have been assigned to service request #{$this->serviceRequest->request_number}.",
-            'service_request_id' => $this->serviceRequest->id,
+            'service_request_id' => Hashids::encode($this->serviceRequest->id),
             'request_number' => $this->serviceRequest->request_number,
             'icon' => 'heroicon-o-user-plus',
             'color' => 'info',

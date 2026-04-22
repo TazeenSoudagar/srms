@@ -53,4 +53,11 @@ export const notificationsApi = {
   markAllAsRead: async (): Promise<void> => {
     await apiClient.post('/notifications/read-all');
   },
+
+  /**
+   * Delete all notifications.
+   */
+  clearAll: async (): Promise<void> => {
+    await apiClient.delete('/notifications');
+  },
 };

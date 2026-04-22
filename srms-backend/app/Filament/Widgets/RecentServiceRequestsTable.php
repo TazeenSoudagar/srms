@@ -17,7 +17,7 @@ class RecentServiceRequestsTable extends BaseWidget
     public function table(Table $table): Table
     {
         return $table
-            ->query(ServiceRequest::query()->latest()->limit(10))
+            ->query(ServiceRequest::query()->with('schedules.engineer')->latest()->limit(10))
             ->columns([
                 Tables\Columns\TextColumn::make('request_number')
                     ->label('Request #')
@@ -29,8 +29,14 @@ class RecentServiceRequestsTable extends BaseWidget
                     ->badge(),
                 Tables\Columns\TextColumn::make('priority')
                     ->badge(),
-                Tables\Columns\TextColumn::make('schedules.0.engineer.name')
+                Tables\Columns\TextColumn::make('engineer')
                     ->label('Engineer')
+                    ->getStateUsing(function ($record) {
+                        $engineer = $record->schedules->first()?->engineer;
+                        return $engineer
+                            ? trim($engineer->first_name . ' ' . $engineer->last_name)
+                            : null;
+                    })
                     ->placeholder('Unassigned'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()

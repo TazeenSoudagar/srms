@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, CheckCheck } from "lucide-react";
-import { getNotifications, markAsRead, markAllAsRead } from "@/lib/api/notifications";
-import { Button } from "@/components/common/Button";
+import { Bell } from "lucide-react";
+import { getNotifications, markAsRead, markAllAsRead, clearAllNotifications } from "@/lib/api/notifications";
 import { timeAgo } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import type { Notification } from "@/lib/types";
@@ -14,6 +13,7 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [markingAll, setMarkingAll] = useState(false);
+  const [clearingAll, setClearingAll] = useState(false);
 
   const unreadCount = notifications.filter((n) => !n.read_at).length;
 
@@ -47,9 +47,23 @@ export default function NotificationsPage() {
     }
   };
 
+  const handleClearAll = async () => {
+    setClearingAll(true);
+    try {
+      await clearAllNotifications();
+      setNotifications([]);
+    } catch {
+      // ignore
+    } finally {
+      setClearingAll(false);
+    }
+  };
+
   const handleClick = (n: Notification) => {
     handleMarkAsRead(n.id);
-    if (n.data.service_request_id) {
+    if (n.data.complaint_id) {
+      router.push(`/complaints/${n.data.complaint_id}`);
+    } else if (n.data.service_request_id) {
       router.push(`/requests/${n.data.service_request_id}`);
     }
   };
@@ -63,12 +77,26 @@ export default function NotificationsPage() {
             {unreadCount > 0 ? `${unreadCount} unread` : "All caught up"}
           </p>
         </div>
-        {unreadCount > 0 && (
-          <Button variant="secondary" size="sm" loading={markingAll} onClick={handleMarkAllAsRead}>
-            <CheckCheck className="w-4 h-4" />
-            Mark all read
-          </Button>
-        )}
+        <div className="flex items-center gap-4">
+          {unreadCount > 0 && (
+            <button
+              onClick={handleMarkAllAsRead}
+              disabled={markingAll}
+              className="text-xs text-primary-600 hover:text-primary-700 font-medium transition-colors disabled:opacity-50"
+            >
+              {markingAll ? "Marking..." : "Mark all read"}
+            </button>
+          )}
+          {notifications.length > 0 && (
+            <button
+              onClick={handleClearAll}
+              disabled={clearingAll}
+              className="text-xs text-neutral-400 hover:text-red-500 font-medium transition-colors disabled:opacity-50"
+            >
+              {clearingAll ? "Clearing..." : "Clear all"}
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-neutral-200 divide-y divide-neutral-100">

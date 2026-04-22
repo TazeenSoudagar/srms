@@ -8,6 +8,7 @@ import {
   Send,
   PlayCircle,
   CheckCircle2,
+  XCircle,
   Clock,
   User,
   AlertCircle,
@@ -268,15 +269,27 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
 
           {isClosed && (
             <>
-              <div className="bg-green-50 rounded-xl border border-green-200 p-5 flex items-center gap-3">
-                <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-green-800">Service Completed</p>
-                  {request.closed_at && (
-                    <p className="text-xs text-green-600 mt-0.5">{formatDate(request.closed_at)}</p>
-                  )}
+              {status === "cancelled" ? (
+                <div className="bg-red-50 rounded-xl border border-red-200 p-5 flex items-center gap-3">
+                  <XCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-red-700">Request Cancelled</p>
+                    {request.closed_at && (
+                      <p className="text-xs text-red-500 mt-0.5">{formatDate(request.closed_at)}</p>
+                    )}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="bg-green-50 rounded-xl border border-green-200 p-5 flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-green-800">Service Completed</p>
+                    {request.closed_at && (
+                      <p className="text-xs text-green-600 mt-0.5">{formatDate(request.closed_at)}</p>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Customer Rating */}
               {request.rating ? (

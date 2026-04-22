@@ -18,7 +18,7 @@ class PendingAssignmentsTable extends BaseWidget
     {
         return $table
             ->query(ServiceRequest::query()
-                ->whereNull('assigned_to')
+                ->whereDoesntHave('schedules')
                 ->where('status', 'open')
                 ->latest()
                 ->limit(10))

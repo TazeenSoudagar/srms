@@ -2,7 +2,6 @@ import { Users, ShieldCheck, Star, Clock, HeartHandshake } from "lucide-react";
 import Image from "next/image";
 
 import Container from "@/components/layout/Container";
-import Card from "@/components/common/Card";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -139,22 +138,23 @@ export default function AboutPage() {
           <h2 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-2 text-center">
             What We Stand For
           </h2>
-          <p className="text-neutral-500 text-center mb-10">
+          <p className="text-neutral-500 text-center mb-10 text-sm">
             Our values guide every decision we make.
           </p>
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-5 md:grid-cols-2">
             {values.map((v) => (
-              <Card key={v.title} variant="elevated" padding="lg">
-                <div className="flex items-start gap-4">
-                  <div className="w-11 h-11 rounded-xl bg-primary-50 flex items-center justify-center flex-shrink-0">
-                    <v.icon className="w-5 h-5 text-primary-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-neutral-900 mb-1">{v.title}</h3>
-                    <p className="text-sm text-neutral-600 leading-relaxed">{v.description}</p>
-                  </div>
+              <div
+                key={v.title}
+                className="group bg-white rounded-2xl border border-neutral-200 p-6 flex items-start gap-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+              >
+                <div className="w-10 h-10 rounded-xl bg-primary-50 border border-primary-100 flex items-center justify-center flex-shrink-0 group-hover:bg-primary-100 transition-colors">
+                  <v.icon className="w-4.5 h-4.5 text-primary-600" strokeWidth={1.75} />
                 </div>
-              </Card>
+                <div>
+                  <h3 className="font-semibold text-neutral-900 text-sm mb-1">{v.title}</h3>
+                  <p className="text-xs text-neutral-500 leading-relaxed">{v.description}</p>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -167,18 +167,19 @@ export default function AboutPage() {
           <p className="text-neutral-500 text-center mb-10">
             The people behind SRMS.
           </p>
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-5 md:grid-cols-3">
             {team.map((member) => (
-              <Card key={member.name} variant="elevated" padding="lg">
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-400 to-primary-700 flex items-center justify-center mb-4">
-                    <Users className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="font-semibold text-neutral-900">{member.name}</h3>
-                  <p className="text-xs text-primary-600 font-medium mt-0.5 mb-3">{member.role}</p>
-                  <p className="text-sm text-neutral-600 leading-relaxed">{member.bio}</p>
+              <div
+                key={member.name}
+                className="bg-white rounded-2xl border border-neutral-200 p-6 flex flex-col items-center text-center shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+              >
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary-400 to-primary-700 flex items-center justify-center mb-3 shadow-sm">
+                  <Users className="w-6 h-6 text-white" />
                 </div>
-              </Card>
+                <h3 className="font-semibold text-neutral-900 text-sm">{member.name}</h3>
+                <p className="text-xs text-primary-600 font-medium mt-0.5 mb-2">{member.role}</p>
+                <p className="text-xs text-neutral-500 leading-relaxed">{member.bio}</p>
+              </div>
             ))}
           </div>
         </div>

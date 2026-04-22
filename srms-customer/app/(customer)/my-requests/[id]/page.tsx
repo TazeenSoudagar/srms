@@ -163,13 +163,18 @@ function StatusTimeline({ currentStatus }: { currentStatus: ServiceRequestStatus
 function CommentItem({
   comment,
   currentUserId,
+  currentUserEmail,
   onDelete,
 }: {
   comment: Comment;
   currentUserId?: string;
+  currentUserEmail?: string;
   onDelete: (id: string) => void;
 }) {
-  const isOwn = comment.user?.id === currentUserId;
+  const isOwn =
+    (currentUserId && comment.user?.id === currentUserId) ||
+    (currentUserEmail && comment.user?.email === currentUserEmail) ||
+    false;
 
   return (
     <div className={`flex gap-3 ${isOwn ? "flex-row-reverse" : ""}`}>
@@ -895,6 +900,7 @@ export default function RequestDetailPage() {
                             key={comment.id}
                             comment={comment}
                             currentUserId={user?.id}
+                            currentUserEmail={user?.email}
                             onDelete={handleDeleteComment}
                           />
                         ))

@@ -19,7 +19,7 @@ class EngineerWorkloadWidget extends BaseWidget
         return $table
             ->query(User::query()
                 ->whereHas('role', fn ($q) => $q->where('name', 'Support Engineer'))
-                ->withCount(['assignedServiceRequests' => fn ($q) => $q->whereNotIn('status', ['resolved', 'closed', 'cancelled'])])
+                ->withCount(['assignedServiceRequests' => fn ($q) => $q->whereNotIn('status', ['completed', 'cancelled'])])
                 ->with(['ratingAggregate', 'engineerProfile'])
                 ->orderBy('assigned_service_requests_count', 'desc'))
             ->columns([

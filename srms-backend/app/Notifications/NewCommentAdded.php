@@ -5,6 +5,7 @@ namespace App\Notifications;
 use App\Models\Comment;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
+use Vinkla\Hashids\Facades\Hashids;
 
 class NewCommentAdded extends Notification
 {
@@ -29,7 +30,7 @@ class NewCommentAdded extends Notification
             'title' => 'New Comment Added',
             'body' => "A new comment was added to service request #{$requestNumber}.",
             'comment_id' => $this->comment->id,
-            'service_request_id' => $commentable?->id,
+            'service_request_id' => $commentable ? Hashids::encode($commentable->id) : null,
             'request_number' => $requestNumber,
             'icon' => 'heroicon-o-chat-bubble-left-right',
             'color' => 'info',

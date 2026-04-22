@@ -17,7 +17,7 @@ export default function BlogPage() {
       >
         <Container>
           <div className="relative text-center max-w-xl mx-auto">
-            <div className="inline-block bg-white/90 rounded-2xl px-10 py-8 shadow-md">
+            <div className="inline-block bg-white/95 rounded-2xl px-10 py-8 shadow-lg border-t-4 border-teal-500">
               <h1 className="text-3xl md:text-4xl font-bold text-neutral-900 mb-2">
                 SRMS Blog
               </h1>
