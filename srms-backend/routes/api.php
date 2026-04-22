@@ -35,6 +35,10 @@ Route::prefix('auth')->group(function () {
     });
 });
 
+// Contact enquiry — public, no auth required
+Route::post('contact', [\App\Http\Controllers\Api\ContactEnquiryController::class, 'store'])
+    ->middleware('throttle:5,1');
+
 // Public routes - No authentication required
 Route::prefix('public')->group(function () {
     // Categories
