@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { Mail, Phone, MapPin, Send, CheckCircle, Clock, HelpCircle } from "lucide-react";
+import { toast } from "sonner";
 import Container from "@/components/layout/Container";
 import Card from "@/components/common/Card";
 import Button from "@/components/common/Button";
 import Input from "@/components/common/Input";
+import { apiClient } from "@/lib/api/client";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -17,28 +19,25 @@ export default function ContactPage() {
   });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
 
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await apiClient.post("/contact", formData);
+
       setSubmitted(true);
-
-      // Reset form
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        subject: "",
-        message: "",
-      });
-
-      // Reset success message after 5 seconds
-      setTimeout(() => setSubmitted(false), 5000);
-    }, 1000);
+      setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
+      toast.success("Message sent! We'll get back to you shortly.");
+      setTimeout(() => setSubmitted(false), 8000);
+    } catch {
+      setError("Failed to send your message. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (
@@ -197,6 +196,12 @@ export default function ContactPage() {
                         Thank you for contacting us. We'll get back to you soon.
                       </p>
                     </div>
+                  </div>
+                )}
+
+                {error && (
+                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-700">{error}</p>
                   </div>
                 )}
 
