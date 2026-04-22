@@ -1,0 +1,132 @@
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: srms-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./docker/nginx/ssl.conf:/etc/nginx/conf.d/ssl.conf:ro
+      - ./docker/certbot/conf:/etc/letsencrypt:ro
+      - ./docker/certbot/www:/var/www/certbot:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - backend
+      - customer
+      - engineer
+    networks:
+      - srms_network
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./srms-backend
+      dockerfile: ../docker/backend/Dockerfile
+    container_name: srms-backend
+    volumes:
+      - ./srms-backend/storage:/var/www/html/storage
+      - ./srms-backend/.env:/var/www/html/.env:ro
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - srms_network
+    healthcheck:
+      test: ["CMD", "php-fpm", "-t"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+
+  customer:
+    build:
+      context: ./srms-customer
+      dockerfile: ../docker/customer/Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://localhost/api}
+        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://localhost}
+    container_name: srms-customer
+    environment:
+      - NODE_ENV=production
+    networks:
+      - srms_network
+    restart: unless-stopped
+
+  engineer:
+    build:
+      context: ./srms-engineer
+      dockerfile: ../docker/engineer/Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://localhost/api}
+        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_ENGINEER_URL:-https://engineer.localhost}
+    container_name: srms-engineer
+    environment:
+      - NODE_ENV=production
+    networks:
+      - srms_network
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    container_name: srms-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-root_password_change_me}
+      - MYSQL_DATABASE=srms_backend
+      - MYSQL_USER=srms_user
+      - MYSQL_PASSWORD=${DB_PASSWORD:-password_change_me}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - srms_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: srms-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - srms_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
+  certbot:
+    image: certbot/certbot
+    container_name: srms-certbot
+    volumes:
+      - ./docker/certbot/conf:/etc/letsencrypt
+      - ./docker/certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot --webroot-path=/var/www/certbot; sleep 12h & wait $${!}; done;'"
+    networks:
+      - srms_network
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  nginx_logs:
+    driver: local
+
+networks:
+  srms_network:
+    driver: bridge
