@@ -49,16 +49,6 @@ class ComplaintsTable
                         default => 'gray',
                     })
                     ->sortable(),
-                TextColumn::make('description')
-                    ->limit(60)
-                    ->wrap()
-                    ->toggleable(),
-                TextColumn::make('closed_at')
-                    ->label('Closed At')
-                    ->dateTime('M j, Y')
-                    ->placeholder('—')
-                    ->sortable()
-                    ->toggleable(),
                 TextColumn::make('created_at')
                     ->label('Raised At')
                     ->dateTime('M j, Y g:i A')
@@ -91,7 +81,7 @@ class ComplaintsTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    // DeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');

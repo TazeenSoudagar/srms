@@ -151,7 +151,7 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-neutral-800">
-                        {s.customer?.first_name} {s.customer?.last_name}
+                        {s.customer?.name}
                       </p>
                       <p className="text-xs text-neutral-500 mt-0.5">
                         {formatDate(s.scheduled_at)} · {s.estimated_duration_minutes} min

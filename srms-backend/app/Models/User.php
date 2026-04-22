@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
+use App\Models\ServiceSchedule;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -135,11 +136,11 @@ class User extends Authenticatable
     }
 
     /**
-     * Get service requests assigned to this user (as engineer).
+     * Get service schedules assigned to this user (as engineer).
      */
     public function assignedServiceRequests(): HasMany
     {
-        return $this->hasMany(ServiceRequest::class, 'assigned_to');
+        return $this->hasMany(ServiceSchedule::class, 'engineer_id');
     }
 
     /**

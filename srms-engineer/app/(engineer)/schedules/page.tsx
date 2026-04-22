@@ -1,110 +1,141 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Calendar, Clock, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction";
+import type { EventClickArg, EventContentArg } from "@fullcalendar/core";
 import { getSchedules } from "@/lib/api/schedules";
-import { Badge } from "@/components/common/Badge";
-import { formatDate } from "@/lib/utils";
-import { cn } from "@/lib/utils";
 import type { Schedule } from "@/lib/types";
 
-const SCHEDULE_STATUS_COLORS: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-700",
-  confirmed: "bg-green-100 text-green-700",
-  in_progress: "bg-blue-100 text-blue-700",
-  completed: "bg-neutral-100 text-neutral-600",
-  cancelled: "bg-red-100 text-red-700",
+const STATUS_COLORS: Record<string, string> = {
+  pending: "#ca8a04",
+  confirmed: "#16a34a",
+  in_progress: "#2563eb",
+  completed: "#737373",
+  cancelled: "#dc2626",
 };
 
-const TABS = [
-  { key: "", label: "All" },
-  { key: "pending", label: "Pending" },
-  { key: "confirmed", label: "Confirmed" },
-  { key: "completed", label: "Completed" },
-];
+function customerName(s: Schedule): string {
+  return s.customer?.name ?? "Customer";
+}
+
+function EventContent({ info }: { info: EventContentArg }) {
+  return (
+    <div className="px-1 py-0.5 overflow-hidden leading-tight">
+      <div className="font-semibold text-xs truncate">{info.event.title}</div>
+      {info.event.extendedProps.service && (
+        <div className="text-[10px] opacity-80 truncate">
+          {info.event.extendedProps.service}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function SchedulesPage() {
+  const router = useRouter();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("");
 
   useEffect(() => {
-    setLoading(true);
-    getSchedules({ status: activeTab || undefined })
-      .then((res) => setSchedules(res.data.data))
+    getSchedules({ page: 1 })
+      .then((res) => {
+        const meta = res.data.meta;
+        const allPages = Array.from({ length: meta.last_page }, (_, i) =>
+          i === 0 ? Promise.resolve(res) : getSchedules({ page: i + 1 })
+        );
+        return Promise.all(allPages);
+      })
+      .then((pages) => {
+        const all = pages.flatMap((p) => p.data.data);
+        setSchedules(all);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [activeTab]);
+  }, []);
+
+  const events = schedules.map((s) => ({
+    id: s.id,
+    title: customerName(s),
+    start: s.scheduled_at,
+    end: s.estimated_end_time ?? s.scheduled_at,
+    backgroundColor: STATUS_COLORS[s.status] ?? "#737373",
+    borderColor: STATUS_COLORS[s.status] ?? "#737373",
+    extendedProps: {
+      serviceRequestId: s.service_request?.id,
+      service: s.service_request?.service?.name,
+      status: s.status,
+      location: s.location,
+    },
+  }));
+
+  function handleEventClick(info: EventClickArg) {
+    const srId = info.event.extendedProps.serviceRequestId;
+    if (srId) router.push(`/requests/${srId}`);
+  }
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-neutral-900">My Schedules</h1>
-        <p className="text-neutral-500 text-sm mt-1">All your service appointments</p>
+        <p className="text-neutral-500 text-sm mt-1">
+          All your service appointments
+        </p>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 bg-neutral-100 rounded-lg p-1 w-fit">
-        {TABS.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={cn(
-              "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
-              activeTab === tab.key
-                ? "bg-white text-neutral-900 shadow-sm"
-                : "text-neutral-500 hover:text-neutral-700"
-            )}
-          >
-            {tab.label}
-          </button>
+      {/* Legend */}
+      <div className="flex flex-wrap gap-3">
+        {Object.entries(STATUS_COLORS).map(([status, color]) => (
+          <div key={status} className="flex items-center gap-1.5">
+            <span
+              className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+              style={{ backgroundColor: color }}
+            />
+            <span className="text-xs text-neutral-500 capitalize">
+              {status.replace("_", " ")}
+            </span>
+          </div>
         ))}
       </div>
 
-      <div className="bg-white rounded-xl border border-neutral-200 divide-y divide-neutral-100">
+      <div className="bg-white rounded-xl border border-neutral-200 p-4">
         {loading ? (
-          <div className="p-6 space-y-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-20 bg-neutral-100 rounded-lg animate-pulse" />
-            ))}
-          </div>
-        ) : schedules.length === 0 ? (
-          <div className="p-12 text-center">
-            <Calendar className="w-10 h-10 mx-auto text-neutral-300 mb-3" />
-            <p className="text-neutral-500">No schedules found</p>
+          <div className="h-[600px] flex items-center justify-center">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              <p className="text-sm text-neutral-400">Loading schedules…</p>
+            </div>
           </div>
         ) : (
-          schedules.map((s) => (
-            <div key={s.id} className="p-5">
-              <div className="flex items-start justify-between gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <User className="w-4 h-4 text-neutral-400" />
-                    <span className="text-sm font-medium text-neutral-800">
-                      {s.customer?.first_name} {s.customer?.last_name}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-neutral-500 text-sm">
-                    <Clock className="w-4 h-4 text-neutral-400" />
-                    <span>{formatDate(s.scheduled_at)}</span>
-                    <span className="text-neutral-300">·</span>
-                    <span>{s.estimated_duration_minutes} min</span>
-                  </div>
-                  {s.total_amount && (
-                    <p className="text-sm text-neutral-600">
-                      Total: <span className="font-semibold">₹{Number(s.total_amount).toFixed(2)}</span>
-                    </p>
-                  )}
-                </div>
-                <Badge
-                  label={s.status.replace("_", " ")}
-                  className={SCHEDULE_STATUS_COLORS[s.status] ?? "bg-neutral-100 text-neutral-600"}
-                />
-              </div>
-            </div>
-          ))
+          <FullCalendar
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            initialView="dayGridMonth"
+            headerToolbar={{
+              left: "prev,next today",
+              center: "title",
+              right: "dayGridMonth,timeGridWeek,timeGridDay",
+            }}
+            events={events}
+            eventClick={handleEventClick}
+            eventContent={(info) => <EventContent info={info} />}
+            height={640}
+            nowIndicator
+            dayMaxEvents={3}
+            eventTimeFormat={{
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            }}
+          />
         )}
       </div>
+
+      <p className="text-xs text-neutral-400 text-center">
+        Click any event to view the service request details
+      </p>
     </div>
   );
 }
