@@ -56,15 +56,32 @@ export interface ServiceRequest {
   closed_at?: string | null;
 }
 
+export interface ScheduleCustomer {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+}
+
+export interface ScheduleEngineer {
+  id: string;
+  name: string;
+  email: string;
+}
+
 export interface Schedule {
   id: string;
   status: "pending" | "confirmed" | "in_progress" | "completed" | "cancelled";
   scheduled_at: string;
   estimated_duration_minutes: number;
-  engineer?: User;
-  customer?: User;
+  engineer?: ScheduleEngineer;
+  customer?: ScheduleCustomer;
+  service_request?: { id: string; title: string; service?: { id: string; name: string } };
   actual_price?: number;
   total_amount?: number;
+  notes?: string;
+  location?: string;
+  estimated_end_time?: string;
 }
 
 export interface Comment {
@@ -85,6 +102,7 @@ export interface Notification {
     color?: string;
     service_request_id?: string;
     request_number?: string;
+    complaint_id?: string;
   };
   read_at: string | null;
   created_at: string;

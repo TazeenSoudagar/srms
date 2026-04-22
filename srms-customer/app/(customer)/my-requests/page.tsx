@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   Clock,
@@ -54,9 +55,11 @@ const filterTabs = [
 ];
 
 export default function MyRequestsPage() {
+  const searchParams = useSearchParams();
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<string>("all");
+  const initialFilter = searchParams.get("status") ?? "all";
+  const [filter, setFilter] = useState<string>(initialFilter);
   const [error, setError] = useState<string | null>(null);
   const [ratingModalRequestId, setRatingModalRequestId] = useState<string | null>(null);
 

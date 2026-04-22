@@ -30,8 +30,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch {
         localStorage.removeItem("engineer_user");
       }
+      // Always refresh from API to keep user id and profile in sync
+      getProfile()
+        .then((res) => {
+          const fresh = res.data.data;
+          setUser(fresh);
+          localStorage.setItem("engineer_user", JSON.stringify(fresh));
+        })
+        .catch(() => {})
+        .finally(() => setIsLoading(false));
+    } else {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
   const login = (token: string, userData: User) => {

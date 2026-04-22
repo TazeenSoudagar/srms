@@ -28,7 +28,7 @@ const topics = [
     icon: Star,
     title: "Ratings & Feedback",
     description: "After a job is completed, you can rate the engineer and leave a review from your request detail page under 'My Requests'.",
-    href: "/my-requests",
+    href: "/my-requests?status=closed",
     cta: "Go to requests",
   },
   {

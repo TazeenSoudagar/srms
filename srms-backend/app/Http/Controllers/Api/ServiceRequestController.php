@@ -391,15 +391,18 @@ class ServiceRequestController extends Controller
             'updated_by' => $user->id,
         ]);
 
-        // Cascade: cancel all pending/confirmed schedules so engineers are notified
+        // Cascade: cancel all pending/confirmed schedules
         $serviceRequest->schedules()
             ->whereIn('status', ['pending', 'confirmed'])
             ->update(['status' => 'cancelled']);
 
-        $serviceRequest->load(['service', 'createdBy', 'updatedBy']);
+        $serviceRequest->load(['service', 'createdBy', 'updatedBy', 'schedules.engineer']);
 
         // Log activity
         ActivityLogService::logStatusChanged($user, $serviceRequest, $oldStatus, 'cancelled');
+
+        // Notify engineers, customer, and admins
+        $this->notifyStatusChange($serviceRequest, $oldStatus, 'cancelled', $user);
 
         return response()->json([
             'message' => 'Service request cancelled successfully',
