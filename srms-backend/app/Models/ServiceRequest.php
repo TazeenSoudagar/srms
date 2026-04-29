@@ -176,7 +176,11 @@ class ServiceRequest extends Model
      */
     public function scopeByStatus(Builder $query, string $status): Builder
     {
-        return $query->where('status', $status);
+        $statuses = array_map('trim', explode(',', $status));
+
+        return count($statuses) > 1
+            ? $query->whereIn('status', $statuses)
+            : $query->where('status', $statuses[0]);
     }
 
     /**

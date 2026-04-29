@@ -28,7 +28,7 @@ export default function DashboardPage() {
       .then((res) => setClosed(res.data.data))
       .catch(() => {});
 
-    getSchedules({ status: "pending,confirmed" })
+    getSchedules({ status: "pending,confirmed", upcoming: true })
       .then((res) => setUpcoming(res.data.data))
       .catch(() => {})
       .finally(() => setLoadingSchedules(false));

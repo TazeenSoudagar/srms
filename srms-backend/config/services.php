@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'notification' => [
+        'url'   => env('NOTIFICATION_SERVICE_URL', 'http://localhost:4000'),
+        'token' => env('NOTIFICATION_SERVICE_TOKEN', 'srms-notification-secret'),
+    ],
+
 ];

@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Jobs\Auth;
 
-use App\Mail\ServiceCompletionOtpMail;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class SendServiceCompletionOtpJob implements ShouldQueue
 {
@@ -27,13 +26,28 @@ class SendServiceCompletionOtpJob implements ShouldQueue
 
     public function handle(): void
     {
-        Mail::to($this->email)->send(new ServiceCompletionOtpMail($this->otp, $this->requestNumber));
+        $response = Http::withHeaders([
+            'X-Service-Token' => config('services.notification.token'),
+        ])->post(config('services.notification.url').'/email/send-completion-otp', [
+            'email'          => $this->email,
+            'otp'            => $this->otp,
+            'request_number' => $this->requestNumber,
+        ]);
+
+        if ($response->failed()) {
+            Log::warning('[SendServiceCompletionOtpJob] Notification service returned error', [
+                'status' => $response->status(),
+                'body'   => $response->body(),
+                'email'  => $this->email,
+            ]);
+            throw new Exception('Notification service failed: '.$response->body());
+        }
     }
 
     public function failed(?Exception $exception): void
     {
         Log::error('Failed to send service completion OTP email after all retries', [
-            'email' => $this->email,
+            'email'     => $this->email,
             'exception' => $exception?->getMessage(),
         ]);
     }

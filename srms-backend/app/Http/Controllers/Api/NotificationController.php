@@ -7,92 +7,91 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class NotificationController extends Controller
 {
-    /**
-     * Return paginated notifications (unread first, then read) for the authenticated user.
-     */
+    private function notificationServiceUrl(): string
+    {
+        return rtrim(config('services.notification.url'), '/');
+    }
+
+    private function forwardHeaders(Request $request): array
+    {
+        return [
+            'Authorization' => $request->header('Authorization'),
+        ];
+    }
+
     public function index(Request $request): JsonResponse
     {
-        $notifications = $request->user()
-            ->notifications()
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+        $response = Http::withHeaders($this->forwardHeaders($request))
+            ->get($this->notificationServiceUrl().'/notifications', [
+                'page' => $request->query('page', 1),
+            ]);
 
-        $items = $notifications->getCollection()->map(function ($notification) {
-            $parts = explode('\\', $notification->type);
+        if ($response->failed()) {
+            Log::error('[NotificationController] index failed', ['status' => $response->status()]);
+            return response()->json(['error' => 'Notification service unavailable'], 502);
+        }
 
-            return [
-                'id'         => $notification->id,
-                'type'       => end($parts),
-                'title'      => $notification->data['title'] ?? null,
-                'message'    => $notification->data['message'] ?? null,
-                'data'       => $notification->data,
-                'read_at'    => $notification->read_at?->toISOString(),
-                'created_at' => $notification->created_at->toISOString(),
-            ];
-        });
-
-        return response()->json([
-            'data' => $items,
-            'meta' => [
-                'current_page' => $notifications->currentPage(),
-                'last_page'    => $notifications->lastPage(),
-                'per_page'     => $notifications->perPage(),
-                'total'        => $notifications->total(),
-            ],
-        ]);
+        return response()->json($response->json());
     }
 
-    /**
-     * Mark a single notification as read.
-     */
     public function markAsRead(Request $request, string $id): JsonResponse
     {
-        $notification = $request->user()
-            ->notifications()
-            ->where('id', $id)
-            ->firstOrFail();
+        $response = Http::withHeaders($this->forwardHeaders($request))
+            ->post($this->notificationServiceUrl().'/notifications/'.$id.'/read');
 
-        $notification->markAsRead();
+        if ($response->status() === 404) {
+            return response()->json(['error' => 'Notification not found'], 404);
+        }
 
-        return response()->json([
-            'message' => 'Notification marked as read',
-        ]);
+        if ($response->failed()) {
+            Log::error('[NotificationController] markAsRead failed', ['status' => $response->status()]);
+            return response()->json(['error' => 'Notification service unavailable'], 502);
+        }
+
+        return response()->json($response->json());
     }
 
-    /**
-     * Mark all unread notifications as read for the authenticated user.
-     */
     public function markAllAsRead(Request $request): JsonResponse
     {
-        $request->user()->unreadNotifications()->update(['read_at' => now()]);
+        $response = Http::withHeaders($this->forwardHeaders($request))
+            ->post($this->notificationServiceUrl().'/notifications/read-all');
 
-        return response()->json([
-            'message' => 'All notifications marked as read',
-        ]);
+        if ($response->failed()) {
+            Log::error('[NotificationController] markAllAsRead failed', ['status' => $response->status()]);
+            return response()->json(['error' => 'Notification service unavailable'], 502);
+        }
+
+        return response()->json($response->json());
     }
 
-    /**
-     * Delete all notifications for the authenticated user.
-     */
     public function clearAll(Request $request): JsonResponse
     {
-        $request->user()->notifications()->delete();
+        $response = Http::withHeaders($this->forwardHeaders($request))
+            ->delete($this->notificationServiceUrl().'/notifications');
 
-        return response()->json(['message' => 'All notifications cleared']);
+        if ($response->failed()) {
+            Log::error('[NotificationController] clearAll failed', ['status' => $response->status()]);
+            return response()->json(['error' => 'Notification service unavailable'], 502);
+        }
+
+        return response()->json($response->json());
     }
 
-    /**
-     * Return the count of unread notifications for the authenticated user.
-     */
     public function unreadCount(Request $request): JsonResponse
     {
-        $count = $request->user()->unreadNotifications()->count();
+        $response = Http::withHeaders($this->forwardHeaders($request))
+            ->get($this->notificationServiceUrl().'/notifications/unread-count');
 
-        return response()->json([
-            'count' => $count,
-        ]);
+        if ($response->failed()) {
+            Log::error('[NotificationController] unreadCount failed', ['status' => $response->status()]);
+            return response()->json(['error' => 'Notification service unavailable'], 502);
+        }
+
+        return response()->json($response->json());
     }
 }
